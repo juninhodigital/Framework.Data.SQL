@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Framework.Services.Core" Version="1.0.2" />
+    <PackageReference Include="Framework.Services.Cryptography" Version="1.0.4" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.2" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Framework.IO">
+      <HintPath>..\..\Framework.IO\Framework.IO\bin\Debug\netstandard2.0\Framework.IO.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
