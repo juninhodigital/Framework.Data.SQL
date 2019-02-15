@@ -7,11 +7,14 @@
   <ItemGroup>
     <PackageReference Include="Framework.Services.Core" Version="1.0.2" />
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.4" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.2" />
+    <PackageReference Include="Framework.Services.Entity" Version="1.0.2" />
     <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Framework.Data">
+      <HintPath>..\..\Framework.Data\Framework.Data\bin\Release\netstandard2.0\Framework.Data.dll</HintPath>
+    </Reference>
     <Reference Include="Framework.IO">
       <HintPath>..\..\Framework.IO\Framework.IO\bin\Debug\netstandard2.0\Framework.IO.dll</HintPath>
     </Reference>

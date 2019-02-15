@@ -14,6 +14,7 @@ namespace Framework.Data.SQL
 {
     /// <summary>
     /// Base class that provides methods to handle SQL Server statements
+    /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-finally"/>
     /// </summary>
     [Serializable]
     public class SQLDatabaseRepository: IDatabaseRepository, IDisposable
@@ -32,27 +33,27 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Initializes a new instance of the System.Data.SqlClient.SqlConnection class.
         /// </summary>
-        public SqlConnection oSqlConnection;
+        public SqlConnection Connection;
 
         /// <summary>
         /// Instance of System.Data.SqlClient.SqlCommand
         /// </summary>
-        public SqlCommand oSqlCommand;
+        public SqlCommand Command;
 
         /// <summary>
         /// Gets or sets the Transact-SQL statement, table name or stored procedure to execute at the data source.
         /// </summary>
-        public string oCommandText;
+        public string CommandText;
 
         /// <summary>
         /// Specifies how a command string is interpreted.
         /// </summary>
-        public CommandType oCommandType;
+        public CommandType CommandType;
 
         /// <summary>
         /// Instance of Framework.Data.SQL.DataBaseManager
         /// </summary>
-        public IDatabaseManager oDataBaseManager;
+        public IDatabaseContext DatabaseContext;
 
         #endregion
       
@@ -87,22 +88,22 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Adds the specified parameter object to the parameter collection (INPUT)
         /// </summary>
-        /// <param name="ParameterName">Parameter Name</param>
-        /// <param name="ParameterValue">Parameter Value</param>
+        /// <param name="parameterName">Parameter Name</param>
+        /// <param name="parameterValue">Parameter Value</param>
         /// <example>
         /// <code>
         ///     In("ParameterName", "ParameterValue");
         /// </code>
         /// </example>
-        public void In(string ParameterName, object ParameterValue)
+        public void In(string parameterName, object parameterValue)
         {
-            ParameterName = CheckParameterName(ParameterName);
+            parameterName = CheckParameterName(parameterName);
 
             var oParam = new SqlParameter();
 
             oParam.Direction     = ParameterDirection.Input;
-            oParam.ParameterName = ParameterName;
-            oParam.Value         = GetParameterValue(ParameterValue);
+            oParam.ParameterName = parameterName;
+            oParam.Value         = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -110,38 +111,38 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Adds the specified parameter object to the parameter collection (INPUT)
         /// </summary>
-        /// <param name="ParameterName">Parameter Name</param>
-        /// <param name="ParameterValue">Parameter Value</param>
-        /// <param name="ParameterType">System.Data.SqlDbType</param>
-        public void In(string ParameterName, object ParameterValue, SqlDbType ParameterType)
+        /// <param name="parameterName">Parameter Name</param>
+        /// <param name="parameterValue">Parameter Value</param>
+        /// <param name="sqlDbType">System.Data.SqlDbType</param>
+        public void In(string parameterName, object parameterValue, SqlDbType sqlDbType)
         {
-            In(ParameterName, ParameterValue);
+            In(parameterName, parameterValue);
 
-            if (oSqlCommand.Parameters != null && !oSqlCommand.Parameters.Contains(ParameterName))
+            if (Command.Parameters != null && !Command.Parameters.Contains(parameterName))
             {
-                oSqlCommand.Parameters[ParameterName].SqlDbType = ParameterType;
+                Command.Parameters[parameterName].SqlDbType = sqlDbType;
             }
         }
 
         /// <summary>
         /// Adds the specified parameter object to the parameter collection (INPUT / OUTPUT)
         /// </summary>
-        /// <param name="ParameterName">Parameter Name</param>
-        /// <param name="ParameterValue">Parameter Value</param>
+        /// <param name="parameterName">Parameter Name</param>
+        /// <param name="parameterValue">Parameter Value</param>
         /// <example>
         /// <code>
         ///     InOut("ParameterName", "ParameterValue");
         /// </code>
         /// </example>
-        public void InOut(string ParameterName, object ParameterValue)
+        public void InOut(string parameterName, object parameterValue)
         {
-            ParameterName = CheckParameterName(ParameterName);
+            parameterName = CheckParameterName(parameterName);
 
             var oParam = new SqlParameter();
 
             oParam.Direction     = ParameterDirection.InputOutput;
-            oParam.ParameterName = ParameterName;
-            oParam.Value         = GetParameterValue(ParameterValue);
+            oParam.ParameterName = parameterName;
+            oParam.Value         = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -149,24 +150,24 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Adds the specified parameter object to the parameter collection (OUTPUT)
         /// </summary>
-        /// <param name="ParameterName">Parameter Name</param>
-        /// <param name="ParameterType">System.Data.DbType</param>
-        /// <param name="ParameterValue">ParameterValue</param>
+        /// <param name="parameterName">Parameter Name</param>
+        /// <param name="sqlDbType">System.Data.DbType</param>
+        /// <param name="parameterValue">ParameterValue</param>
         /// <example>
         /// <code>
         ///     Out("ParameterName", DbType.Int32);
         /// </code>
         /// </example>
-        public void Out(string ParameterName, SqlDbType ParameterType, object ParameterValue = null)
+        public void Out(string parameterName, SqlDbType sqlDbType, object parameterValue = null)
         {
-            ParameterName = CheckParameterName(ParameterName);
+            parameterName = CheckParameterName(parameterName);
 
             var oParam = new SqlParameter();
 
             oParam.Direction     = ParameterDirection.InputOutput;
-            oParam.SqlDbType     = ParameterType;
-            oParam.ParameterName = ParameterName;
-            oParam.Value         = GetParameterValue(ParameterValue);
+            oParam.SqlDbType     = sqlDbType;
+            oParam.ParameterName = parameterName;
+            oParam.Value         = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -174,147 +175,147 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Adds the specified IDbDataParameter object to the parameter collection
         /// </summary>
-        /// <param name="oDbParameter">IDbDataParameter</param>
-        public void AddParam(IDbDataParameter oDbParameter)
+        /// <param name="dbDataParameter">IDbDataParameter</param>
+        public void AddParam(IDbDataParameter dbDataParameter)
         {
-            if (oSqlCommand == null)
+            if (Command == null)
             {
-                oSqlCommand = new SqlCommand();
+                Command = new SqlCommand();
             }
 
-            if (oSqlCommand.Parameters != null && !oSqlCommand.Parameters.Contains(oDbParameter.ParameterName))
+            if (Command.Parameters != null && !Command.Parameters.Contains(dbDataParameter.ParameterName))
             {
-                oSqlCommand.Parameters.Add(oDbParameter);
+                Command.Parameters.Add(dbDataParameter);
             }
         }
 
         /// <summary>
         /// Check if the ParameterName is null or empty
         /// </summary>
-        /// <param name="ParameterName"></param>
+        /// <param name="parameterName"></param>
         /// <returns></returns>
-        public string CheckParameterName(string ParameterName)
+        public string CheckParameterName(string parameterName)
         {
-            if (string.IsNullOrEmpty(ParameterName))
+            if (string.IsNullOrEmpty(parameterName))
             {
                 throw new Exception("Framework: O nome do parâmetro não pode ser nulo ou vazio");
             }
             else
             {
-                ParameterName = ParameterName.Replace("@", "");
-                ParameterName = "@" + ParameterName;
+                parameterName = parameterName.Replace("@", "");
+                parameterName = "@" + parameterName;
             }
 
-            return ParameterName;
+            return parameterName;
         }
 
         /// <summary>
         /// Check the parameter value
         /// </summary>
-        /// <param name="ParameterValue">ParameterValue</param>
+        /// <param name="parameterValue">ParameterValue</param>
         /// <returns>object</returns>
-        public object GetParameterValue(object ParameterValue)
+        public object GetParameterValue(object parameterValue)
         {
-            if (ParameterValue.IsNull())
+            if (parameterValue.IsNull())
             {
                 return DBNull.Value;
             }
             else
             {
-                if (ParameterValue is String)
+                if (parameterValue is String)
                 {
-                    if (string.IsNullOrEmpty(ParameterValue.ToString()))
+                    if (string.IsNullOrEmpty(parameterValue.ToString()))
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is DateTime)
+                if (parameterValue is DateTime)
                 {
-                    if (DateTime.Parse(ParameterValue.ToString()) == DateTime.MinValue)
+                    if (DateTime.Parse(parameterValue.ToString()) == DateTime.MinValue)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is Int32 || ParameterValue is int || ParameterValue is Int64)
+                if (parameterValue is Int32 || parameterValue is int || parameterValue is Int64)
                 {
-                    if (ParameterValue.ToString().ToInt() == int.MinValue)
+                    if (parameterValue.ToString().ToInt() == int.MinValue)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is float)
+                if (parameterValue is float)
                 {
-                    if (ParameterValue.ToString().ToFloat() == float.MinValue)
+                    if (parameterValue.ToString().ToFloat() == float.MinValue)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is decimal)
+                if (parameterValue is decimal)
                 {
-                    if (ParameterValue.ToString().ToDecimal() == decimal.MinValue)
+                    if (parameterValue.ToString().ToDecimal() == decimal.MinValue)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is byte)
+                if (parameterValue is byte)
                 {
-                    if (byte.Parse(ParameterValue.ToString()) == byte.MinValue)
+                    if (byte.Parse(parameterValue.ToString()) == byte.MinValue)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is char)
+                if (parameterValue is char)
                 {
-                    if (ParameterValue.ToString().Trim().Length == 0)
+                    if (parameterValue.ToString().Trim().Length == 0)
                     {
                         return DBNull.Value;
                     }
                     else
                     {
-                        if (char.Parse(ParameterValue.ToString()) == char.MinValue)
+                        if (char.Parse(parameterValue.ToString()) == char.MinValue)
                         {
                             return DBNull.Value;
                         }
                         else
                         {
-                            return ParameterValue;
+                            return parameterValue;
                         }
                     }
                 }
 
-                if (ParameterValue is DataTable)
+                if (parameterValue is DataTable)
                 {
-                    var oDataTable = ParameterValue as DataTable;
+                    var oDataTable = parameterValue as DataTable;
 
                     if (oDataTable.IsNull())
                     {
@@ -322,13 +323,13 @@ namespace Framework.Data.SQL
                     }
                     else
                     {
-                        return ParameterValue;
+                        return parameterValue;
                     }
                 }
 
-                if (ParameterValue is Nullable<bool>)
+                if (parameterValue is Nullable<bool>)
                 {
-                    var oNullable = (Nullable<bool>)ParameterValue;
+                    var oNullable = (Nullable<bool>)parameterValue;
 
                     if (oNullable.HasValue == false)
                     {
@@ -340,7 +341,7 @@ namespace Framework.Data.SQL
                     }
                 }
 
-                return ParameterValue;
+                return parameterValue;
             }
         }
 
@@ -351,13 +352,13 @@ namespace Framework.Data.SQL
         /// </summary>
         public void IsProfilerEnabled()
         {
-            var ProfileEnable = this.GetAppSettings("FRAMEWORK.PROFILE.ENABLED");
+            var profilePath = this.GetAppSettings("FRAMEWORK.PROFILE.PATH");
 
-            if (ProfileEnable.IsNotNull() && ProfileEnable.IsEqual("true"))
+            if (profilePath.IsNotNull())
             {
                 var SQL = PreviewSQL();
 
-                File.AppendAllText(@"C:\FRAMEWORK_PROFILER_LOG.txt", SQL + Environment.NewLine);
+                File.AppendAllText(profilePath, SQL + Environment.NewLine);
 
             }
         }
@@ -371,16 +372,16 @@ namespace Framework.Data.SQL
             var oStringBuilder = new StringBuilder();
             var BR = Environment.NewLine;
 
-            if (this.oCommandType == CommandType.StoredProcedure)
+            if (this.CommandType == CommandType.StoredProcedure)
             {
                 // Check if exists table value parameters
-                if (oSqlCommand.IsNotNull() && oSqlCommand.Parameters != null && oSqlCommand.Parameters.Count > 0)
+                if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
                 {
                     var HasTVP = false;
 
-                    for (int i = 0; i < oSqlCommand.Parameters.Count; i++)
+                    for (int i = 0; i < Command.Parameters.Count; i++)
                     {
-                        var oParam = oSqlCommand.Parameters[i];
+                        var oParam = Command.Parameters[i];
 
                         if (oParam.SqlDbType == SqlDbType.Structured)
                         {
@@ -392,10 +393,10 @@ namespace Framework.Data.SQL
                             {
                                 oStringBuilder.Append("DECLARE " + oParam.ParameterName + " " + oParam.ParameterName.Replace("@","") + BR + BR);
 
-                                oStringBuilder.Append("INSERT " + oParam.ParameterName);
-
                                 for (int z = 0; z < DT.Rows.Count ; z++)
                                 {
+                                    oStringBuilder.Append("INSERT " + oParam.ParameterName);
+
                                     DataRow oRow = DT.Rows[z];
 
                                     for (int y = 0; y < oRow.ItemArray.Length; y++)
@@ -428,13 +429,13 @@ namespace Framework.Data.SQL
                     }
                 }
                 
-                oStringBuilder.Append("EXEC " + this.oCommandText + " " + BR);
+                oStringBuilder.Append("EXEC " + this.CommandText + " " + BR);
 
-                if (oSqlCommand.IsNotNull() && oSqlCommand.Parameters != null && oSqlCommand.Parameters.Count > 0)
+                if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
                 {
-                    for (int i = 0; i < oSqlCommand.Parameters.Count; i++)
+                    for (int i = 0; i < Command.Parameters.Count; i++)
                     {
-                        var oParam = oSqlCommand.Parameters[i];
+                        var oParam = Command.Parameters[i];
 
                         if (oParam.Direction == ParameterDirection.InputOutput || oParam.Direction == ParameterDirection.Output)
                         {
@@ -506,7 +507,7 @@ namespace Framework.Data.SQL
                             }
                         }
 
-                        if (i != oSqlCommand.Parameters.Count - 1)
+                        if (i != Command.Parameters.Count - 1)
                         {
                             oStringBuilder.Append(",");
                         }
@@ -517,25 +518,25 @@ namespace Framework.Data.SQL
             }
             else
             {
-                oStringBuilder.Append(this.oCommandText);
+                oStringBuilder.Append(this.CommandText);
             }
 
             return oStringBuilder.ToString();
         }
         
         /// <summary>
-        /// Sets the DataBaseManager to execute operations against the DataBase
+        /// Sets the database context to execute operations against the DataBase
         /// </summary>
-        /// <param name="oDM">DataBaseManager</param>
-        public void SetManager(IDatabaseManager oDM)
+        /// <param name="databaseContext">DataBaseManager</param>
+        public void SetContext(IDatabaseContext databaseContext)
         {
-            if (oDM.IsNull() || oDM.Databases.IsNull())
+            if (databaseContext.IsNull())
             {
-                throw new ArgumentException("Framework - DataBaseManager está null ou não contém databases adicionados.");
+                throw new ArgumentException("Framework - The database context is null or empty");
             }
             else
             {
-                this.oDataBaseManager = oDM;
+                this.DatabaseContext = databaseContext;
             }
             
         }
@@ -543,12 +544,12 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Configures the System.Data.CommandType and the T-SQL statement that will be executed on the Database
         /// </summary>
-        /// <param name="CommandType">System.Data.CommandType</param>
-        /// <param name="Statement">T-SQL Statement</param>
-        public void Run(string Statement, CommandType CommandType = CommandType.StoredProcedure)
+        /// <param name="commandType">System.Data.CommandType</param>
+        /// <param name="statement">T-SQL Statement</param>
+        public void Run(string statement, CommandType commandType = CommandType.StoredProcedure)
         {
-            this.oCommandText = Statement;
-            this.oCommandType = CommandType;
+            this.CommandText = statement;
+            this.CommandType = commandType;
         }
 
         /// <summary>
@@ -561,33 +562,21 @@ namespace Framework.Data.SQL
         /// </returns>
         public T GetScalar<T>()
         {
-            T Aux = default(T);
+            T output = default(T);
 
-            for (int i = 0; i < oDataBaseManager.Databases.Count; i++)
+            try
             {
-                var oDataBase = oDataBaseManager.Databases[i];
+                this.Prepare();
 
-                try
-                {
-                    this.Prepare(oDataBase);
+                output = (T)Command.ExecuteScalar();
 
-                    Aux = (T)oSqlCommand.ExecuteScalar();
-
-                    break;
-                }
-                catch (Exception Error)
-                {
-                    LogError(oDataBaseManager, oDataBase, Error);
-                }
-                finally
-                {
-                    this.Release();
-                }
+            }
+            finally
+            {
+                this.Release();
             }
 
-            CheckErrorsOnAll();
-
-            return Aux;
+            return output;
         }
         
         /// <summary>
@@ -616,7 +605,7 @@ namespace Framework.Data.SQL
         {
             ParameterName = CheckParameterName(ParameterName);
 
-            return (T)oSqlCommand.Parameters[ParameterName].Value;
+            return (T)Command.Parameters[ParameterName].Value;
         }
 
         /// <summary>
@@ -637,40 +626,27 @@ namespace Framework.Data.SQL
         /// </example>
         public DataTable GetDataTable()
         {
-            var oDataTable = new DataTable();
-
-            for (int i = 0; i < oDataBaseManager.Databases.Count; i++)
+            var output = new DataTable();
+          
+            try
             {
-                var oDataBase = oDataBaseManager.Databases[i];
+                this.Prepare();
 
-                try
+                this.Command.Prepare();
+
+                using (var oSqlDataReader = this.Command.ExecuteReader(CommandBehavior.CloseConnection))
                 {
-                    this.Prepare(oDataBase);
+                    output.Load(oSqlDataReader);
 
-                    this.oSqlCommand.Prepare();
-
-                    using (var oSqlDataReader = this.oSqlCommand.ExecuteReader(CommandBehavior.CloseConnection))
-                    {
-                        oDataTable.Load(oSqlDataReader);
-
-                        oSqlCommand.Dispose();
-                    }
-
-                    break;
-                }
-                catch (Exception Error)
-                {
-                    LogError(oDataBaseManager, oDataBase, Error);
-                }
-                finally
-                {
-                    this.Release();
+                    Command.Dispose();
                 }
             }
+            finally
+            {
+                this.Release();
+            }
 
-            CheckErrorsOnAll();
-
-            return oDataTable;
+            return output;
         }
       
         /// <summary>
@@ -691,38 +667,26 @@ namespace Framework.Data.SQL
         /// </example>
         public DataSet GetDataSet()
         {
-            var oDataSet = new DataSet();
+            var output = new DataSet();
 
-            for (int i = 0; i < oDataBaseManager.Databases.Count; i++)
+            try
             {
-                var oDataBase = oDataBaseManager.Databases[i];
+                this.Prepare();
 
-                try
-                {
-                    this.Prepare(oDataBase);
+                var oSqlDataAdapter = new SqlDataAdapter(this.Command);
 
-                    var oSqlDataAdapter = new SqlDataAdapter(this.oSqlCommand);
+                oSqlDataAdapter.Fill(output);
 
-                    oSqlDataAdapter.Fill(oDataSet);
+                oSqlDataAdapter.Dispose();
+                Command.Dispose();
 
-                    oSqlDataAdapter.Dispose();
-                    oSqlCommand.Dispose();
-
-                    break;
-                }
-                catch (Exception Error)
-                {
-                    LogError(oDataBaseManager, oDataBase, Error);
-                }
-                finally
-                {
-                    this.Release();
-                }
             }
-
-            CheckErrorsOnAll();
+            finally
+            {
+                this.Release();
+            }
             
-            return oDataSet;
+            return output;
         }
 
         /// <summary>
@@ -743,32 +707,16 @@ namespace Framework.Data.SQL
         /// </example>
         public IDataReader GetReader()
         {
-            SqlDataReader oSqlDataReader = null;
+            SqlDataReader output = null;
 
-            for (int i = 0; i < oDataBaseManager.Databases.Count; i++)
-            {
-                var oDataBase = oDataBaseManager.Databases[i];
+            this.Prepare();
 
-                try
-                {
-                    this.Prepare(oDataBase);
+            this.Command.Prepare();
 
-                    this.oSqlCommand.Prepare();
+            output = this.Command.ExecuteReader(CommandBehavior.CloseConnection);
 
-                    oSqlDataReader = this.oSqlCommand.ExecuteReader(CommandBehavior.CloseConnection);
+            return output;
 
-                    break;
-                }
-                catch (Exception Error)
-                {
-                    LogError(oDataBaseManager, oDataBase, Error);
-                }
-            }
-
-            CheckErrorsOnAll();
-
-            return oSqlDataReader;
-          
         }
       
         /// <summary>
@@ -791,69 +739,54 @@ namespace Framework.Data.SQL
         /// <returns>The number of rows affected</returns>
         public int Execute()
         {
-            for (int i = 0; i < oDataBaseManager.Databases.Count; i++)
+            var output = 0;
+
+            try
             {
-                var oDataBase = oDataBaseManager.Databases[i];
+                this.Prepare();
 
-                try
-                {
-                    this.Prepare(oDataBase);
-
-                    this.oSqlCommand.ExecuteNonQuery();
-
-                    if (oDataBaseManager.ExecutionType == ExecutionType.ExecuteOnFirst)
-                    {
-                        break;
-                    }
-
-                }
-                catch (Exception Error)
-                {
-                    LogError(oDataBaseManager, oDataBase, Error);
-                }
-                finally
-                {
-                    this.Release();
-                }
+                output = this.Command.ExecuteNonQuery();
+            }
+            finally
+            {
+                this.Release();
             }
 
-            CheckErrorsOnAll();
-
-            return 0;
+            return output;
         }
 
         /// <summary>
         /// Opens a database connection with the property settings specified by the System.Data.SqlClient.SqlConnection.ConnectionString.
         /// </summary>
-        public void Prepare(IDatabaseContext oDataBase)
+        public void Prepare()
         {
             this.InfoMessage = string.Empty;
 
-            this.oSqlConnection = new SqlConnection(oDataBase.ConnectionString);
-            this.oSqlConnection.InfoMessage += new SqlInfoMessageEventHandler(GetInfoMessage);
+            this.Connection = new SqlConnection(DatabaseContext.ConnectionString);
+            this.Connection.InfoMessage += new SqlInfoMessageEventHandler(GetInfoMessage);
 
-            if (this.oSqlCommand == null)
+            if (this.Command.IsNull())
             {
-                this.oSqlCommand = oSqlConnection.CreateCommand();
+                this.Command = Connection.CreateCommand();
             }
 
-            this.oSqlCommand.CommandType = oCommandType;
-            this.oSqlCommand.CommandText = oCommandText;
-            this.oSqlCommand.Connection = oSqlConnection;
+            this.Command.CommandType = CommandType;
+            this.Command.CommandText = CommandText;
+            this.Command.Connection = Connection;
 
-            if (oDataBase.CommandTimeout.HasValue && oDataBase.CommandTimeout.Value > 0)
+            if (DatabaseContext.CommandTimeout.HasValue && DatabaseContext.CommandTimeout.Value > 0)
             {
-                this.oSqlCommand.CommandTimeout = oDataBase.CommandTimeout.Value;
+                this.Command.CommandTimeout = DatabaseContext.CommandTimeout.Value;
             }
  
-            if (this.oSqlCommand.CommandType == CommandType.Text)
+            if (this.Command.CommandType == CommandType.Text)
             {
-                this.oSqlCommand.Parameters.Clear();
+                this.Command.Parameters.Clear();
             }
 
-            if (this.oSqlConnection != null && this.oSqlConnection.State == ConnectionState.Closed)
+            if (this.Connection != null && this.Connection.State == ConnectionState.Closed)
             {
-                this.oSqlConnection.Open();
+                this.Connection.Open();
             }
 
             IsProfilerEnabled();
@@ -865,30 +798,30 @@ namespace Framework.Data.SQL
         /// </summary>
         public void Release()
         {
-            if (this.oSqlConnection != null)
+            if (this.Connection != null)
             {
-                if (this.oSqlConnection.State == ConnectionState.Open)
+                if (this.Connection.State == ConnectionState.Open)
                 {
-                    this.oSqlConnection.Close();
+                    this.Connection.Close();
                 }
 
                 //this.SqlConnection.ClearPool(Command.Connection);
-                this.oSqlConnection.Dispose();
-                this.oSqlConnection = null;
+                this.Connection.Dispose();
+                this.Connection = null;
             }
 
-            if (this.oSqlCommand!=null)
+            if (this.Command!=null)
             {
-                if (this.oSqlCommand.Connection != null)
+                if (this.Command.Connection != null)
                 {
-                    if (this.oSqlCommand.Connection.State == ConnectionState.Open)
+                    if (this.Command.Connection.State == ConnectionState.Open)
                     {
-                        this.oSqlCommand.Connection.Close();
+                        this.Command.Connection.Close();
                     }
 
                     //this.SqlConnection.ClearPool(Command.Connection);
-                    this.oSqlCommand.Connection.Dispose();
-                    this.oSqlCommand.Connection = null;
+                    this.Command.Connection.Dispose();
+                    this.Command.Connection = null;
                 }
 
                 //this.oSqlCommand.Dispose();
@@ -899,36 +832,10 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
-        /// Logs the errors into the Database class
+        /// Get the info message from the underlying database raised by the PRINT statement
         /// </summary>
-        /// <param name="oDataBaseManager">DataBaseManager</param>
-        /// <param name="oDataBase">DataBase</param>
-        /// <param name="Error">Exception</param>
-        public void LogError(IDatabaseManager oDataBaseManager, IDatabaseContext oDataBase, Exception Error)
-        {
-            // oDataBaseManager.errorMessage += oDataBase.DataSource + " - " + Error.Message + Environment.NewLine;
-            oDataBaseManager.ErrorMessage += Error.Message + Environment.NewLine;
-
-            oDataBaseManager.HasError = true;
-            oDataBase.HasError = true;
-
-        }
-
-        /// <summary>
-        /// Check whether an error occured in all database collection
-        /// </summary>
-        public void CheckErrorsOnAll()
-        {           
-            if (oDataBaseManager.Databases.Exists(D => D.HasError == false))
-            {
-                oDataBaseManager.HasErrorOnAll = false;
-            }
-            else
-            {
-                oDataBaseManager.HasErrorOnAll = true;
-            }
-        }
-
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         public void GetInfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
             if (e.Errors.IsNotNull())
@@ -949,8 +856,8 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Returns an instance of the Business Entity Structured class whose properties will be filled with the information from the Database
         /// </summary>
-        /// <param name="oIDataReader">IDataReader</param>
-        /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
+        /// <param name="dataReader">IDataReader</param>
+        /// <param name="isUsingNextResult">Indicates if is using multiple resultsets</param>
         /// <returns>An instance of the Business Entity Structured class</returns>
         /// <example>
         ///     <code>
@@ -964,16 +871,16 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public T Map<T>(IDataReader oIDataReader = null, bool IsUsingNextResult = false) where T : BusinessEntityStructure
+        public T Map<T>(IDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure
         {
-            if (oIDataReader.IsNull())
+            if (dataReader.IsNull())
             {
-                oIDataReader = GetReader();
+                dataReader = GetReader();
             }
 
-            if (oIDataReader.IsNotNull() && oIDataReader.IsClosed == false && ((SqlDataReader)oIDataReader).HasRows)
+            if (dataReader.IsNotNull() && dataReader.IsClosed == false && ((SqlDataReader)dataReader).HasRows)
             {
-                List<T> Aux = GetList<T>(oIDataReader, IsUsingNextResult);
+                List<T> Aux = GetList<T>(dataReader, isUsingNextResult);
 
                 if (Aux != null && Aux.Count > 0)
                 {
@@ -1387,16 +1294,15 @@ namespace Framework.Data.SQL
         {
             this.Release();
 
-            if (this.oSqlCommand != null)
+            if (this.Command != null)
             {
-                this.oSqlCommand.Dispose();
-                this.oSqlCommand = null;
+                this.Command.Dispose();
+                this.Command = null;
             }
 
-            if (this.oDataBaseManager != null)
+            if (this.DatabaseContext != null)
             {
-                this.oDataBaseManager.Dispose();
-                this.oDataBaseManager = null;
+                this.DatabaseContext = null;
             }
 
             GC.SuppressFinalize(this);
