@@ -34,6 +34,7 @@ namespace Framework.Data.SQL
         /// </summary>
         static SQLDatabaseContextSingleton()
         {
+            //System.Console.WriteLine("Initialized");
         }
 
         /// <summary>

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Data.SqlClient;
 
-using Framework.Core;
-
 namespace Framework.Data.SQL
 {
     /// <summary>
