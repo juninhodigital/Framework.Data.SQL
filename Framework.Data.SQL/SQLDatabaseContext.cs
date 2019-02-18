@@ -37,16 +37,16 @@ namespace Framework.Data.SQL
         {
             this.ConnectionString = connectionString ?? throw new ArgumentNullException("The connection string is null or empty");
 
-            this.CommandTimeout = commandTimeout.HasValue? commandTimeout : 30;
+            this.CommandTimeout = commandTimeout.HasValue ? commandTimeout : 30;
             this.ConnectTimeout = connectionTimeout.HasValue ? connectionTimeout : 15;
-                        
+
             var oSqlConnectionBuilder = new SqlConnectionStringBuilder(this.ConnectionString)
             {
                 ConnectTimeout = this.ConnectTimeout.Value
             };
 
             this.ConnectionString = oSqlConnectionBuilder.ToString();
-            
+
             oSqlConnectionBuilder = null;
         }
 

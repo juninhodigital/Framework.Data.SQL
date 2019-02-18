@@ -5,10 +5,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Framework.Services.Core" Version="1.0.2" />
+    <PackageReference Include="Framework.Services.Core" Version="1.0.3" />
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.4" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.2" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.5.1" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
   </ItemGroup>
 
   <ItemGroup>

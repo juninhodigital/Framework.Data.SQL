@@ -7,7 +7,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 
-using Framework.Core;
+using static Framework.Core.Extensions;
 using Framework.Entity;
 
 namespace Framework.Data.SQL
@@ -83,7 +83,7 @@ namespace Framework.Data.SQL
 
         #region| Methods |   
 
-        #region| Parameters 
+        #region| Parameters |
 
         /// <summary>
         /// Adds the specified parameter object to the parameter collection (INPUT)
@@ -352,7 +352,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public void IsProfilerEnabled()
         {
-            var profilePath = this.GetAppSettings("FRAMEWORK.PROFILE.PATH");
+            var profilePath = GetAppSettings("FRAMEWORK.PROFILE.PATH");
 
             if (profilePath.IsNotNull())
             {
@@ -946,7 +946,7 @@ namespace Framework.Data.SQL
                         var oSchema            = GetSchema(oIDataReader);
                         var oType              = typeof(T);
                         var TypeName           = oType.Name;
-                        var MustRaiseException = this.GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
+                        var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
 
                         if (MustRaiseException.IsNull())
                         {
@@ -1036,7 +1036,7 @@ namespace Framework.Data.SQL
                 {
                     output = new List<T>();
 
-                    var MustRaiseException = this.GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
+                    var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
 
                     if (MustRaiseException.IsNull())
                     {
