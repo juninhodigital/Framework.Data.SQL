@@ -9,6 +9,7 @@ using System.Text;
 
 using static Framework.Core.Extensions;
 using Framework.Entity;
+using System.Linq;
 
 namespace Framework.Data.SQL
 {
@@ -713,7 +714,7 @@ namespace Framework.Data.SQL
 
             this.Command.Prepare();
 
-            output = this.Command.ExecuteReader(CommandBehavior.CloseConnection);
+            output = this.Command.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection);
 
             return output;
 
@@ -880,16 +881,11 @@ namespace Framework.Data.SQL
 
             if (dataReader.IsNotNull() && dataReader.IsClosed == false && ((SqlDataReader)dataReader).HasRows)
             {
-                List<T> Aux = GetList<T>(dataReader, isUsingNextResult);
+                var items = GetList<T>(dataReader, isUsingNextResult);
 
-                if (Aux != null && Aux.Count > 0)
+                if (items != null && items.Any())
                 {
-                    T Sender = Aux[0] as T;
-
-                    Aux = null;
-
-                    return Sender;
-
+                    return items.FirstOrDefault();
                 }
                 else
                 {
@@ -922,7 +918,7 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetList<T>(IDataReader oIDataReader = null, bool IsUsingNextResult = false) where T : BusinessEntityStructure
+        public IEnumerable<T> GetList<T>(IDataReader oIDataReader = null, bool IsUsingNextResult = false) where T : BusinessEntityStructure
         {
             T Sender = Activator.CreateInstance<T>();
 
@@ -1114,7 +1110,7 @@ namespace Framework.Data.SQL
         /// <param name="TypeName">Gets the name of the current member.</param>
         /// <param name="oSchema">List of the columns avaiable in the SqlDataReader</param>
         /// <param name="MustRaiseException">Indicates whether an exception will be throw in case of failure</param>
-        public void BindList<T>(IDataReader oIDataReader, T Sender, Type oType, string TypeName, List<string> oSchema, bool MustRaiseException) where T : BusinessEntityStructure
+        public void BindList<T>(IDataReader oIDataReader, T Sender, Type oType, string TypeName, HashSet<string> oSchema, bool MustRaiseException) where T : BusinessEntityStructure
         {
             #region| OLD 
 
@@ -1164,7 +1160,7 @@ namespace Framework.Data.SQL
             {
                 var oProperty = Sender.MappedProperties[i];
 
-                if (oSchema.Exists(C => C.IsEqual(oProperty.ColumnName)))
+                if (oSchema.Contains(oProperty.ColumnName))
                 {
                     var oPropertyInfo = oType.GetProperty(oProperty.PropertyName, BindingFlags.Public | BindingFlags.Instance);
 
@@ -1266,9 +1262,9 @@ namespace Framework.Data.SQL
         /// </summary>
         /// <param name="oIDataReader"></param>
         /// <returns></returns>
-        public List<string> GetSchema(IDataReader oIDataReader)
+        public HashSet<string> GetSchema(IDataReader oIDataReader)
         {
-            var oList = new List<string>();
+            var oList = new HashSet<string>();
             var oSchema = oIDataReader.GetSchemaTable();
 
             foreach (DataRow oRow in oSchema.Rows)
