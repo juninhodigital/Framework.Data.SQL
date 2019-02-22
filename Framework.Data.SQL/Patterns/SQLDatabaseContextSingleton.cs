@@ -22,7 +22,7 @@ namespace Framework.Data.SQL
         {
             connectionString = connection;
             return instance.Value;
-            
+
         }
 
         #endregion
@@ -42,8 +42,8 @@ namespace Framework.Data.SQL
         /// </summary>
         private SQLDatabaseContextSingleton()
         {
-            
-        } 
+
+        }
 
         #endregion
     }

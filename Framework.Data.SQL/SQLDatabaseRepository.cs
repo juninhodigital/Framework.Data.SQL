@@ -10,6 +10,8 @@ using System.Text;
 using static Framework.Core.Extensions;
 using Framework.Entity;
 using System.Linq;
+using System.Threading;
+using System.Globalization;
 
 namespace Framework.Data.SQL
 {
@@ -18,14 +20,14 @@ namespace Framework.Data.SQL
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-finally"/>
     /// </summary>
     [Serializable]
-    public class SQLDatabaseRepository: IDatabaseRepository, IDisposable
+    public class SQLDatabaseRepository : IDatabaseRepository, IDisposable
     {
         #region| Properties |
 
         /// <summary>
         /// Provides information returned by the print output from the SQL Server
         /// </summary>
-        public string InfoMessage { get; set; } 
+        public string InfoMessage { get; set; }
 
         #endregion
 
@@ -57,7 +59,7 @@ namespace Framework.Data.SQL
         public IDatabaseContext DatabaseContext;
 
         #endregion
-      
+
         #region| Constructor |
 
         /// <summary>
@@ -65,7 +67,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public SQLDatabaseRepository()
         {
-           // Your code goes here...
+            // Your code goes here...
         }
 
         #endregion
@@ -102,9 +104,9 @@ namespace Framework.Data.SQL
 
             var oParam = new SqlParameter();
 
-            oParam.Direction     = ParameterDirection.Input;
+            oParam.Direction = ParameterDirection.Input;
             oParam.ParameterName = parameterName;
-            oParam.Value         = GetParameterValue(parameterValue);
+            oParam.Value = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -141,9 +143,9 @@ namespace Framework.Data.SQL
 
             var oParam = new SqlParameter();
 
-            oParam.Direction     = ParameterDirection.InputOutput;
+            oParam.Direction = ParameterDirection.InputOutput;
             oParam.ParameterName = parameterName;
-            oParam.Value         = GetParameterValue(parameterValue);
+            oParam.Value = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -165,10 +167,10 @@ namespace Framework.Data.SQL
 
             var oParam = new SqlParameter();
 
-            oParam.Direction     = ParameterDirection.InputOutput;
-            oParam.SqlDbType     = sqlDbType;
+            oParam.Direction = ParameterDirection.InputOutput;
+            oParam.SqlDbType = sqlDbType;
             oParam.ParameterName = parameterName;
-            oParam.Value         = GetParameterValue(parameterValue);
+            oParam.Value = GetParameterValue(parameterValue);
 
             AddParam(oParam);
         }
@@ -392,9 +394,9 @@ namespace Framework.Data.SQL
 
                             if (DT.IsNotNull() && DT.Rows.Count > 0)
                             {
-                                oStringBuilder.Append("DECLARE " + oParam.ParameterName + " " + oParam.ParameterName.Replace("@","") + BR + BR);
+                                oStringBuilder.Append("DECLARE " + oParam.ParameterName + " " + oParam.ParameterName.Replace("@", "") + BR + BR);
 
-                                for (int z = 0; z < DT.Rows.Count ; z++)
+                                for (int z = 0; z < DT.Rows.Count; z++)
                                 {
                                     oStringBuilder.Append("INSERT " + oParam.ParameterName);
 
@@ -429,7 +431,7 @@ namespace Framework.Data.SQL
                         oStringBuilder.Append(BR);
                     }
                 }
-                
+
                 oStringBuilder.Append("EXEC " + this.CommandText + " " + BR);
 
                 if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
@@ -464,46 +466,46 @@ namespace Framework.Data.SQL
                             }
                             else
                             {
-                                
+
                                 switch (oParam.SqlDbType)
                                 {
                                     case SqlDbType.Decimal:
                                     case SqlDbType.Float:
                                     case SqlDbType.Money:
                                     case SqlDbType.Real:
-                                    {
-                                        oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString().Replace(",", ".") + "");
-                                        break;
-                                    }
+                                        {
+                                            oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString().Replace(",", ".") + "");
+                                            break;
+                                        }
                                     case SqlDbType.Int:
                                     case SqlDbType.SmallInt:
                                     case SqlDbType.BigInt:
-                                    {
-                                        oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString() + "");
-                                        break;
-                                    }
+                                        {
+                                            oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString() + "");
+                                            break;
+                                        }
                                     case SqlDbType.Bit:
-                                    {
-                                        if (oParam.Value.ToString().ToLower() == "true")
                                         {
-                                            oStringBuilder.Append(oParam.ParameterName + " = 1");
+                                            if (oParam.Value.ToString().ToLower() == "true")
+                                            {
+                                                oStringBuilder.Append(oParam.ParameterName + " = 1");
+                                            }
+                                            else
+                                            {
+                                                oStringBuilder.Append(oParam.ParameterName + " = 0");
+                                            }
+                                            break;
                                         }
-                                        else
-                                        {
-                                            oStringBuilder.Append(oParam.ParameterName + " = 0");
-                                        }
-                                        break;
-                                    }
                                     case SqlDbType.Structured:
-                                    {
-                                        oStringBuilder.Append(oParam.ParameterName + " = " + oParam.ParameterName + "");
-                                        break;
-                                    }
+                                        {
+                                            oStringBuilder.Append(oParam.ParameterName + " = " + oParam.ParameterName + "");
+                                            break;
+                                        }
                                     default:
-                                    {
-                                        oStringBuilder.Append(oParam.ParameterName + " = '" + oParam.Value.ToString().Replace(",", ".") + "'");
-                                        break;
-                                    }
+                                        {
+                                            oStringBuilder.Append(oParam.ParameterName + " = '" + oParam.Value.ToString().Replace(",", ".") + "'");
+                                            break;
+                                        }
                                 }
                             }
                         }
@@ -524,7 +526,7 @@ namespace Framework.Data.SQL
 
             return oStringBuilder.ToString();
         }
-        
+
         /// <summary>
         /// Sets the database context to execute operations against the DataBase
         /// </summary>
@@ -539,7 +541,7 @@ namespace Framework.Data.SQL
             {
                 this.DatabaseContext = databaseContext;
             }
-            
+
         }
 
         /// <summary>
@@ -579,7 +581,7 @@ namespace Framework.Data.SQL
 
             return output;
         }
-        
+
         /// <summary>
         /// Gets the output of the parameter value
         /// </summary>
@@ -628,7 +630,7 @@ namespace Framework.Data.SQL
         public DataTable GetDataTable()
         {
             var output = new DataTable();
-          
+
             try
             {
                 this.Prepare();
@@ -649,7 +651,7 @@ namespace Framework.Data.SQL
 
             return output;
         }
-      
+
         /// <summary>
         /// Adds or refreshes rows in the System.Data.DataSet.
         /// </summary>
@@ -686,8 +688,31 @@ namespace Framework.Data.SQL
             {
                 this.Release();
             }
-            
+
             return output;
+        }
+
+        /// <summary>
+        ///  Get a IDataReader based on the System.Data.CommandType and the given parameters
+        /// </summary>
+        /// <returns>System.Data.SqlClient.SqlDataReader</returns>
+        /// <example>
+        /// <code>
+        ///  public SqlDataReader FillDataReader()
+        ///  {
+        ///     this.Run("STORED_PROCEDURE_NAME");
+        ///  
+        ///     In("ACTION", "SELECT");
+        ///  
+        ///     return GetReader();
+        ///  }
+        /// </code>
+        /// </example>
+        public IEnumerable<T> Query<T>()
+        {
+            this.Prepare();
+
+            return SqlMapper.Query<T>(this.Connection, this.Command.CommandText);
         }
 
         /// <summary>
@@ -714,12 +739,12 @@ namespace Framework.Data.SQL
 
             this.Command.Prepare();
 
-            output = this.Command.ExecuteReader(CommandBehavior.SingleResult | CommandBehavior.SequentialAccess | CommandBehavior.CloseConnection);
+            output = this.Command.ExecuteReader(CommandBehavior.CloseConnection);
 
             return output;
 
         }
-      
+
         /// <summary>
         /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
         /// </summary>
@@ -729,7 +754,7 @@ namespace Framework.Data.SQL
         ///     {
         ///         this.Run("STORED_PROCEDURE_NAME");
         /// 
-		///	        InOut("ID", DbType.Int32);
+        ///	        InOut("ID", DbType.Int32);
         ///         In("Nome",UsuarioI.Nome);
         ///         In("Mail",UsuarioI.Mail);
         /// 
@@ -779,7 +804,7 @@ namespace Framework.Data.SQL
             {
                 this.Command.CommandTimeout = DatabaseContext.CommandTimeout.Value;
             }
- 
+
             if (this.Command.CommandType == CommandType.Text)
             {
                 this.Command.Parameters.Clear();
@@ -811,7 +836,7 @@ namespace Framework.Data.SQL
                 this.Connection = null;
             }
 
-            if (this.Command!=null)
+            if (this.Command != null)
             {
                 if (this.Command.Connection != null)
                 {
@@ -829,7 +854,7 @@ namespace Framework.Data.SQL
                 //this.oSqlCommand = null;
             }
 
-           
+
         }
 
         /// <summary>
@@ -896,7 +921,7 @@ namespace Framework.Data.SQL
             {
                 return default(T); //Activator.CreateInstance<T>();
             }
-          
+
         }
 
         /// <summary>
@@ -939,9 +964,9 @@ namespace Framework.Data.SQL
                     {
                         Aux = new List<T>();
 
-                        var oSchema            = GetSchema(oIDataReader);
-                        var oType              = typeof(T);
-                        var TypeName           = oType.Name;
+                        var oSchema = GetSchema(oIDataReader);
+                        var oType = typeof(T);
+                        var TypeName = oType.Name;
                         var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
 
                         if (MustRaiseException.IsNull())
@@ -960,7 +985,7 @@ namespace Framework.Data.SQL
                         }
 
                         oSchema = null;
-                        oType   = null;
+                        oType = null;
                     }
                     else
                     {
@@ -1019,7 +1044,7 @@ namespace Framework.Data.SQL
         /// </example>
         public List<T> GetPrimitiveList<T>(IDataReader oIDataReader = null) where T : IComparable
         {
-            List<T> output = null;            
+            List<T> output = null;
 
             if (oIDataReader == null)
             {
@@ -1179,8 +1204,8 @@ namespace Framework.Data.SQL
                         if (oPropertyInfo.PropertyType.IsGenericType && oPropertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         {
                             var oPropertyDescriptors = TypeDescriptor.GetProperties(typeof(T));
-                            var oPropertyDescriptor  = oPropertyDescriptors.Find(oProperty.PropertyName, false);
-                            var oUnderlyingType      = Nullable.GetUnderlyingType(oPropertyDescriptor.PropertyType);
+                            var oPropertyDescriptor = oPropertyDescriptors.Find(oProperty.PropertyName, false);
+                            var oUnderlyingType = Nullable.GetUnderlyingType(oPropertyDescriptor.PropertyType);
 
                             if (oUnderlyingType.IsNotNull())
                             {
@@ -1212,12 +1237,12 @@ namespace Framework.Data.SQL
                             }
 
                             oPropertyDescriptors = null;
-                            oPropertyDescriptor  = null;
-                            oUnderlyingType      = null;
+                            oPropertyDescriptor = null;
+                            oUnderlyingType = null;
                         }
                         else
                         {
-                            if (oIDataReader[oProperty.ColumnName]!=null)
+                            if (oIDataReader[oProperty.ColumnName] != null)
                             {
                                 if (oIDataReader[oProperty.ColumnName] != null || oIDataReader[oProperty.ColumnName] == DBNull.Value)
                                 {
@@ -1305,5 +1330,6 @@ namespace Framework.Data.SQL
         }
 
         #endregion
+
     }
 }
