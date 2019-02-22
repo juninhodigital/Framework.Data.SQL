@@ -10,13 +10,11 @@ namespace Framework.Data.SQL
         /// Not intended for direct usage
         /// </summary>
         /// <typeparam name="T">The type to have a cache for.</typeparam>
-        [Obsolete(ObsoleteInternalUsageOnly, false)]
-#if !NETSTANDARD1_3
-        [Browsable(false)]
-#endif
-        [EditorBrowsable(EditorBrowsableState.Never)]
+        [Obsolete(ObsoleteInternalUsageOnly, false), EditorBrowsable(EditorBrowsableState.Never), ]
         public static class TypeHandlerCache<T>
         {
+            #region| Methods |
+
             /// <summary>
             /// Not intended for direct usage.
             /// </summary>
@@ -39,7 +37,9 @@ namespace Framework.Data.SQL
 #pragma warning restore 618
             }
 
-            private static ITypeHandler handler;
+            private static ITypeHandler handler; 
+
+            #endregion
         }
     }
 }

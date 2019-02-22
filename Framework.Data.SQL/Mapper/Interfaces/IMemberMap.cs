@@ -10,6 +10,8 @@ namespace Framework.Data.SQL
         /// </summary>
         public interface IMemberMap
         {
+            #region| Properties |
+
             /// <summary>
             /// Source DataReader column name
             /// </summary>
@@ -33,7 +35,9 @@ namespace Framework.Data.SQL
             /// <summary>
             /// Target constructor parameter
             /// </summary>
-            ParameterInfo Parameter { get; }
+            ParameterInfo Parameter { get; } 
+
+            #endregion
         }
     }
 }

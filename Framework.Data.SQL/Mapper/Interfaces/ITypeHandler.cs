@@ -10,6 +10,8 @@ namespace Framework.Data.SQL
         /// </summary>
         public interface ITypeHandler
         {
+            #region| Methods |
+
             /// <summary>
             /// Assign the value of a parameter before a command executes
             /// </summary>
@@ -23,7 +25,9 @@ namespace Framework.Data.SQL
             /// <param name="value">The value from the database</param>
             /// <param name="destinationType">The type to parse to</param>
             /// <returns>The typed value</returns>
-            object Parse(Type destinationType, object value);
+            object Parse(Type destinationType, object value); 
+
+            #endregion
         }
     }
 }

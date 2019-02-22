@@ -10,31 +10,13 @@ namespace Framework.Data.SQL
         /// </summary>
         public class Identity : IEquatable<Identity>
         {
-            internal Identity ForGrid(Type primaryType, int gridIndex) =>
-                new Identity(sql, commandType, connectionString, primaryType, parametersType, null, gridIndex);
-
-            internal Identity ForGrid(Type primaryType, Type[] otherTypes, int gridIndex) =>
-                new Identity(sql, commandType, connectionString, primaryType, parametersType, otherTypes, gridIndex);
-
-            /// <summary>
-            /// Create an identity for use with DynamicParameters, internal use only.
-            /// </summary>
-            /// <param name="type">The parameters type to create an <see cref="Identity"/> for.</param>
-            /// <returns></returns>
-            public Identity ForDynamicParameters(Type type) =>
-                new Identity(sql, commandType, connectionString, this.type, type, null, -1);
-
-            internal Identity(string sql, CommandType? commandType, IDbConnection connection, Type type, Type parametersType, Type[] otherTypes)
-                : this(sql, commandType, connection.ConnectionString, type, parametersType, otherTypes, 0) { /* base call */ }
-
-            private Identity(string sql, CommandType? commandType, string connectionString, Type type, Type parametersType, Type[] otherTypes, int gridIndex)
+            public Identity(string sql, CommandType? commandType, string connectionString, Type type)
             {
                 this.sql = sql;
                 this.commandType = commandType;
                 this.connectionString = connectionString;
                 this.type = type;
-                this.parametersType = parametersType;
-                this.gridIndex = gridIndex;
+               
                 unchecked
                 {
                     hashCode = 17; // we *know* we are using this in a dictionary, so pre-compute this
@@ -42,15 +24,8 @@ namespace Framework.Data.SQL
                     hashCode = (hashCode * 23) + gridIndex.GetHashCode();
                     hashCode = (hashCode * 23) + (sql?.GetHashCode() ?? 0);
                     hashCode = (hashCode * 23) + (type?.GetHashCode() ?? 0);
-                    if (otherTypes != null)
-                    {
-                        foreach (var t in otherTypes)
-                        {
-                            hashCode = (hashCode * 23) + (t?.GetHashCode() ?? 0);
-                        }
-                    }
                     hashCode = (hashCode * 23) + (connectionString == null ? 0 : connectionStringComparer.GetHashCode(connectionString));
-                    hashCode = (hashCode * 23) + (parametersType?.GetHashCode() ?? 0);
+                   
                 }
             }
 

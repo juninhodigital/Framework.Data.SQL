@@ -10,6 +10,8 @@ namespace Framework.Data.SQL
         /// </summary>
         public interface ITypeMap
         {
+            #region| Methods |
+
             /// <summary>
             /// Finds best constructor
             /// </summary>
@@ -40,7 +42,8 @@ namespace Framework.Data.SQL
             /// </summary>
             /// <param name="columnName">DataReader column name</param>
             /// <returns>Mapping implementation</returns>
-            IMemberMap GetMember(string columnName);
+            IMemberMap GetMember(string columnName); 
+            #endregion
         }
     }
 }
