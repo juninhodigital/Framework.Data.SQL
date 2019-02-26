@@ -6,7 +6,6 @@ namespace Framework.Data.SQL
     /// <summary>
     /// It handles Database Connection and sets the time in seconds to wait for the command to execute
     /// </summary>
-    [Serializable]
     public class SQLDatabaseContext : DatabaseContext
     {
         #region| Constructor |
@@ -46,6 +45,52 @@ namespace Framework.Data.SQL
             this.ConnectionString = oSqlConnectionBuilder.ToString();
 
             oSqlConnectionBuilder = null;
+        }
+
+        /// <summary>
+        /// Get the SQL server database context
+        /// </summary>
+        /// <param name="connectionString">SQL Server connection string</param>
+        /// <param name="isEncrypted">Indicates whether the connectiton string is encrypted or not</param>
+        /// <returns>SQLDatabaseContext</returns>
+        public static SQLDatabaseContext GetContext(string connectionString, bool isEncrypted=false)
+        {
+            connectionString = CheckEncryption(connectionString, isEncrypted);
+
+            var context = new SQLDatabaseContext(connectionString);
+
+            return context;
+        }
+
+        /// <summary>
+        /// Get the SQL server database context
+        /// </summary>
+        /// <param name="connectionString">SQL Server connection string</param>
+        /// <param name="isEncrypted">Indicates whether the connectiton string is encrypted or not</param>
+        /// <returns>SQLDatabaseContext</returns>
+        public static SQLDatabaseContext GetSingletonContext(string connectionString, bool isEncrypted = false)
+        {
+            connectionString = CheckEncryption(connectionString, isEncrypted);
+
+            var context = SQLDatabaseContextSingleton.Instance(connectionString);
+
+            return context;
+        }
+
+        /// <summary>
+        /// Decripts the connection string, if needed
+        /// </summary>
+        /// <param name="connectionString">SQL Server connection string</param>
+        /// <param name="isEncrypted">Indicates whether the connectiton string is encrypted or not</param>
+        private static string CheckEncryption(string connectionString, bool isEncrypted)
+        {
+            if (isEncrypted)
+            {
+                // Decrypts the connection string
+                connectionString = Cryptography.Cryptography.DecryptUsingTripleDES(connectionString);
+            }
+
+            return connectionString;
         }
 
         #endregion

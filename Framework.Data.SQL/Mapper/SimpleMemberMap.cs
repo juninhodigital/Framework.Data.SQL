@@ -8,6 +8,37 @@ namespace Framework.Data.SQL
     /// </summary>
     internal sealed class SimpleMemberMap : SqlMapper.IMemberMap
     {
+        #region| Properties |
+
+        /// <summary>
+        /// DataReader column name
+        /// </summary>
+        public string ColumnName { get; }
+
+        /// <summary>
+        /// Target member type
+        /// </summary>
+        public Type MemberType => Field?.FieldType ?? Property?.PropertyType ?? Parameter?.ParameterType;
+
+        /// <summary>
+        /// Target property
+        /// </summary>
+        public PropertyInfo Property { get; }
+
+        /// <summary>
+        /// Target field
+        /// </summary>
+        public FieldInfo Field { get; }
+
+        /// <summary>
+        /// Target constructor parameter
+        /// </summary>
+        public ParameterInfo Parameter { get; }
+
+        #endregion
+
+        #region| Constructor |
+
         /// <summary>
         /// Creates instance for simple property mapping
         /// </summary>
@@ -39,31 +70,7 @@ namespace Framework.Data.SQL
         {
             ColumnName = columnName ?? throw new ArgumentNullException(nameof(columnName));
             Parameter = parameter ?? throw new ArgumentNullException(nameof(parameter));
-        }
-
-        /// <summary>
-        /// DataReader column name
-        /// </summary>
-        public string ColumnName { get; }
-
-        /// <summary>
-        /// Target member type
-        /// </summary>
-        public Type MemberType => Field?.FieldType ?? Property?.PropertyType ?? Parameter?.ParameterType;
-
-        /// <summary>
-        /// Target property
-        /// </summary>
-        public PropertyInfo Property { get; }
-
-        /// <summary>
-        /// Target field
-        /// </summary>
-        public FieldInfo Field { get; }
-
-        /// <summary>
-        /// Target constructor parameter
-        /// </summary>
-        public ParameterInfo Parameter { get; }
+        } 
+        #endregion
     }
 }

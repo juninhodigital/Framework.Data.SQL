@@ -9,8 +9,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
-using System.Xml;
-using System.Xml.Linq;
 
 #if NETSTANDARD1_3
 using DataException = System.InvalidOperationException;
@@ -326,12 +324,7 @@ namespace Framework.Data.SQL
                 return cmd.ExecuteReader(GetBehavior(wasClosed, behavior));
             }
             catch (ArgumentException ex)
-            { // thanks, Sqlite!
-                if (Settings.DisableCommandBehaviorOptimizations(behavior, ex))
-                {
-                    // we can retry; this time it will have different flags
-                    return cmd.ExecuteReader(GetBehavior(wasClosed, behavior));
-                }
+            {
                 throw;
             }
         }

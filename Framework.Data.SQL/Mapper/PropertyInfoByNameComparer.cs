@@ -7,7 +7,11 @@ namespace Framework.Data.SQL
     {
         private class PropertyInfoByNameComparer : IComparer<PropertyInfo>
         {
-            public int Compare(PropertyInfo x, PropertyInfo y) => string.CompareOrdinal(x.Name, y.Name);
+            #region| Methods |
+
+            public int Compare(PropertyInfo x, PropertyInfo y) => string.CompareOrdinal(x.Name, y.Name); 
+
+            #endregion
         }
     }
 }

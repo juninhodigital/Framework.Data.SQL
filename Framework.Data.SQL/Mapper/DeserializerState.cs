@@ -7,14 +7,22 @@ namespace Framework.Data.SQL
     {
         private struct DeserializerState
         {
+            #region| Properties |
+
             public readonly int Hash;
             public readonly Func<IDataReader, object> Func;
+
+            #endregion
+
+            #region| Constructor |
 
             public DeserializerState(int hash, Func<IDataReader, object> func)
             {
                 Hash = hash;
                 Func = func;
-            }
+            } 
+
+            #endregion
         }
     }
 }

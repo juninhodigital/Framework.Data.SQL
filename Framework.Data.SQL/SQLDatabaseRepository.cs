@@ -10,8 +10,6 @@ using System.Text;
 using static Framework.Core.Extensions;
 using Framework.Entity;
 using System.Linq;
-using System.Threading;
-using System.Globalization;
 
 namespace Framework.Data.SQL
 {
@@ -19,7 +17,6 @@ namespace Framework.Data.SQL
     /// Base class that provides methods to handle SQL Server statements
     /// <seealso cref="https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/try-finally"/>
     /// </summary>
-    [Serializable]
     public class SQLDatabaseRepository : IDatabaseRepository, IDisposable
     {
         #region| Properties |
