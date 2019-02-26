@@ -99,8 +99,6 @@ namespace Framework.Data.SQL
                 [typeof(TimeSpan?)]       = DbType.Time,
                 [typeof(object)]          = DbType.Object
             };
-
-            ResetTypeHandlers(false);
         }
 
         #endregion
@@ -196,22 +194,6 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
-        /// Clear the registered type handlers.
-        /// </summary>
-        public static void ResetTypeHandlers() => ResetTypeHandlers(true);
-
-        private static void ResetTypeHandlers(bool clone)
-        {
-            typeHandlers = new Dictionary<Type, ITypeHandler>();
-#if !NETSTANDARD1_3
-            //Do nothing..
-#endif
-            AddTypeHandlerImpl(typeof(XmlDocument), new XmlDocumentHandler(), clone);
-            AddTypeHandlerImpl(typeof(XDocument), new XDocumentHandler(), clone);
-            AddTypeHandlerImpl(typeof(XElement), new XElementHandler(), clone);
-        }
-
-        /// <summary>
         /// Configure the specified type to be mapped to a given db-type.
         /// </summary>
         /// <param name="type">The type to map from.</param>
@@ -243,74 +225,6 @@ namespace Framework.Data.SQL
             typeMap = newCopy;
         }
 
-        /// <summary>
-        /// Configure the specified type to be processed by a custom handler.
-        /// </summary>
-        /// <param name="type">The type to handle.</param>
-        /// <param name="handler">The handler to process the <paramref name="type"/>.</param>
-        public static void AddTypeHandler(Type type, ITypeHandler handler) => AddTypeHandlerImpl(type, handler, true);
-
-        internal static bool HasTypeHandler(Type type) => typeHandlers.ContainsKey(type);
-
-        /// <summary>
-        /// Configure the specified type to be processed by a custom handler.
-        /// </summary>
-        /// <param name="type">The type to handle.</param>
-        /// <param name="handler">The handler to process the <paramref name="type"/>.</param>
-        /// <param name="clone">Whether to clone the current type handler map.</param>
-        public static void AddTypeHandlerImpl(Type type, ITypeHandler handler, bool clone)
-        {
-            if (type == null) throw new ArgumentNullException(nameof(type));
-
-            Type secondary = null;
-            if (type.IsValueType())
-            {
-                var underlying = Nullable.GetUnderlyingType(type);
-                if (underlying == null)
-                {
-                    secondary = typeof(Nullable<>).MakeGenericType(type); // the Nullable<T>
-                    // type is already the T
-                }
-                else
-                {
-                    secondary = type; // the Nullable<T>
-                    type = underlying; // the T
-                }
-            }
-
-            var snapshot = typeHandlers;
-            if (snapshot.TryGetValue(type, out ITypeHandler oldValue) && handler == oldValue) return; // nothing to do
-
-            var newCopy = clone ? new Dictionary<Type, ITypeHandler>(snapshot) : snapshot;
-
-#pragma warning disable 618
-            typeof(TypeHandlerCache<>).MakeGenericType(type).GetMethod(nameof(TypeHandlerCache<int>.SetHandler), BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { handler });
-            if (secondary != null)
-            {
-                typeof(TypeHandlerCache<>).MakeGenericType(secondary).GetMethod(nameof(TypeHandlerCache<int>.SetHandler), BindingFlags.Static | BindingFlags.NonPublic).Invoke(null, new object[] { handler });
-            }
-#pragma warning restore 618
-            if (handler == null)
-            {
-                newCopy.Remove(type);
-                if (secondary != null) newCopy.Remove(secondary);
-            }
-            else
-            {
-                newCopy[type] = handler;
-                if (secondary != null) newCopy[secondary] = handler;
-            }
-            typeHandlers = newCopy;
-        }
-
-        /// <summary>
-        /// Configure the specified type to be processed by a custom handler.
-        /// </summary>
-        /// <typeparam name="T">The type to handle.</typeparam>
-        /// <param name="handler">The handler for the type <typeparamref name="T"/>.</param>
-        public static void AddTypeHandler<T>(TypeHandler<T> handler) => AddTypeHandlerImpl(typeof(T), handler, true);
-
-        private static Dictionary<Type, ITypeHandler> typeHandlers;
 
         internal const string LinqBinary = "System.Data.Linq.Binary";
 
@@ -443,11 +357,6 @@ namespace Framework.Data.SQL
             return GetTypeDeserializer(type, reader, startBound, length, returnNullIfFirstMissing);
         }
 
-        private static Func<IDataReader, object> GetHandlerDeserializer(ITypeHandler handler, Type type, int startBound)
-        {
-            return reader => handler.Parse(type, reader.GetValue(startBound));
-        }
-
         /// <summary>
         /// Internal use only.
         /// </summary>
@@ -515,10 +424,7 @@ namespace Framework.Data.SQL
                 }
                 return (T)Enum.ToObject(type, value);
             }
-            if (typeHandlers.TryGetValue(type, out ITypeHandler handler))
-            {
-                return (T)handler.Parse(type, value);
-            }
+           
             return (T)Convert.ChangeType(value, type, CultureInfo.InvariantCulture);
         }
 
@@ -811,19 +717,10 @@ namespace Framework.Data.SQL
                         else
                         {
                             TypeCode dataTypeCode = TypeExtensions.GetTypeCode(colType), unboxTypeCode = TypeExtensions.GetTypeCode(unboxType);
-                            bool hasTypeHandler;
-                            if ((hasTypeHandler = typeHandlers.ContainsKey(unboxType)) || colType == unboxType || dataTypeCode == unboxTypeCode || dataTypeCode == TypeExtensions.GetTypeCode(nullUnderlyingType))
+
+                            if (colType == unboxType || dataTypeCode == unboxTypeCode || dataTypeCode == TypeExtensions.GetTypeCode(nullUnderlyingType))
                             {
-                                if (hasTypeHandler)
-                                {
-#pragma warning disable 618
-                                    il.EmitCall(OpCodes.Call, typeof(TypeHandlerCache<>).MakeGenericType(unboxType).GetMethod(nameof(TypeHandlerCache<int>.Parse)), null); // stack is now [target][target][typed-value]
-#pragma warning restore 618
-                                }
-                                else
-                                {
-                                    il.Emit(OpCodes.Unbox_Any, unboxType); // stack is now [target][target][typed-value]
-                                }
+                                il.Emit(OpCodes.Unbox_Any, unboxType); // stack is now [target][target][typed-value]
                             }
                             else
                             {
