@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Data.SQL", "Framework.Data.SQL\Framework.Data.SQL.csproj", "{61BE87AD-F9F8-4AC3-A176-17965B539791}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tester", "..\..\test\Tester\Tester.csproj", "{C6F6B0BA-1E56-451C-8204-3087C375E521}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{61BE87AD-F9F8-4AC3-A176-17965B539791}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{61BE87AD-F9F8-4AC3-A176-17965B539791}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{61BE87AD-F9F8-4AC3-A176-17965B539791}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C6F6B0BA-1E56-451C-8204-3087C375E521}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C6F6B0BA-1E56-451C-8204-3087C375E521}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C6F6B0BA-1E56-451C-8204-3087C375E521}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C6F6B0BA-1E56-451C-8204-3087C375E521}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
