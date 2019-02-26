@@ -2,6 +2,15 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Description>It is a .NET Core/Standard library that provides base class that provides methods to handle SQL Server statements optimizing performance</Description>
+    <Authors>Jose Carlos de Jesus Junior</Authors>
+    <Copyright>Copyright 2018</Copyright>
+    <PackageLicenseUrl>https://github.com/juninhodigital/Framework.Data.SQL/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/juninhodigital/Framework.Data.SQL</PackageProjectUrl>
+    <PackageIconUrl>https://github.com/juninhodigital/Framework.Core/blob/master/Icons/FS_IconSmall.png?raw=true</PackageIconUrl>
+    <RepositoryUrl>https://github.com/juninhodigital/Framework.Data.SQL</RepositoryUrl>
+    <RepositoryType>Data Services, Data Helper, Data Library, SQL Library</RepositoryType>
+    <Version>1.0.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
