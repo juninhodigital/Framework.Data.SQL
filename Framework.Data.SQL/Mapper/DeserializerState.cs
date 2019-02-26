@@ -3,7 +3,7 @@ using System.Data;
 
 namespace Framework.Data.SQL
 {
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         private struct DeserializerState
         {

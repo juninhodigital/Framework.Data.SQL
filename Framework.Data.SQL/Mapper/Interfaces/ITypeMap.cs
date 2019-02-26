@@ -3,7 +3,7 @@ using System.Reflection;
 
 namespace Framework.Data.SQL
 {
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         /// <summary>
         /// Implement this interface to change default mapping of reader columns to type members

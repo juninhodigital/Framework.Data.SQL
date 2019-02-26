@@ -8,7 +8,7 @@ namespace Framework.Data.SQL
     /// <summary>
     /// Represents default type mapping strategy
     /// </summary>
-    public sealed class DefaultTypeMap : SqlMapper.ITypeMap
+    public sealed class DefaultTypeMap : Mapper.ITypeMap
     {
         #region| Fields |
 
@@ -122,7 +122,7 @@ namespace Framework.Data.SQL
                         break;
                     }
 
-                    if (types[i] == typeof(byte[]) && ctorParameters[i].ParameterType.FullName == SqlMapper.LinqBinary)
+                    if (types[i] == typeof(byte[]) && ctorParameters[i].ParameterType.FullName == Mapper.LinqBinary)
                     {
                         continue;
                     }
@@ -170,7 +170,7 @@ namespace Framework.Data.SQL
         /// <param name="constructor">Constructor to resolve</param>
         /// <param name="columnName">DataReader column name</param>
         /// <returns>Mapping implementation</returns>
-        public SqlMapper.IMemberMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
+        public Mapper.IMemberMap GetConstructorParameter(ConstructorInfo constructor, string columnName)
         {
             var parameters = constructor.GetParameters();
 
@@ -182,7 +182,7 @@ namespace Framework.Data.SQL
         /// </summary>
         /// <param name="columnName">DataReader column name</param>
         /// <returns>Mapping implementation</returns>
-        public SqlMapper.IMemberMap GetMember(string columnName)
+        public Mapper.IMemberMap GetMember(string columnName)
         {
             var property = Properties.Find(p => string.Equals(p.Name, columnName, StringComparison.Ordinal))
                ?? Properties.Find(p => string.Equals(p.Name, columnName, StringComparison.OrdinalIgnoreCase));

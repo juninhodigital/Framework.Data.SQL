@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Framework.Data.SQL
 {
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         private partial class TypeDeserializerCache
         {

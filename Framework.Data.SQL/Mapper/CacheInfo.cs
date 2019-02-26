@@ -4,7 +4,7 @@ using System.Threading;
 
 namespace Framework.Data.SQL
 {
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         private class CacheInfo
         {

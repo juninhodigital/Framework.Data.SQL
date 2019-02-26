@@ -3,10 +3,10 @@ using System.Data;
 
 namespace Framework.Data.SQL
 {
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         /// <summary>
-        /// Permits specifying certain SqlMapper values globally.
+        /// Permits specifying certain Mapper values globally.
         /// </summary>
         public static class Settings
         {

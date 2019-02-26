@@ -19,7 +19,7 @@ namespace Framework.Data.SQL
     /// <summary>
     /// SQL Mapper class based on the Dapper
     /// </summary>
-    public static partial class SqlMapper
+    public static partial class Mapper
     {
         #region| Fields |
 
@@ -28,7 +28,7 @@ namespace Framework.Data.SQL
         private static int collect;
         private static Dictionary<Type, DbType> typeMap;
         private static IEqualityComparer<string> connectionStringComparer = StringComparer.Ordinal;
-        internal static readonly MethodInfo format = typeof(SqlMapper).GetMethod("Format", BindingFlags.Public | BindingFlags.Static);
+        internal static readonly MethodInfo format = typeof(Mapper).GetMethod("Format", BindingFlags.Public | BindingFlags.Static);
 
         #endregion
 
@@ -55,7 +55,7 @@ namespace Framework.Data.SQL
 
         #region| Constructor |
 
-        static SqlMapper()
+        static Mapper()
         {
             typeMap = new Dictionary<Type, DbType>
             {
@@ -664,8 +664,8 @@ namespace Framework.Data.SQL
 
                     if (memberType == typeof(char) || memberType == typeof(char?))
                     {
-                        il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(
-                            memberType == typeof(char) ? nameof(SqlMapper.ReadChar) : nameof(SqlMapper.ReadNullableChar), BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
+                        il.EmitCall(OpCodes.Call, typeof(Mapper).GetMethod(
+                            memberType == typeof(char) ? nameof(Mapper.ReadChar) : nameof(Mapper.ReadNullableChar), BindingFlags.Static | BindingFlags.Public), null); // stack is now [target][target][typed-value]
                     }
                     else
                     {
@@ -824,7 +824,7 @@ namespace Framework.Data.SQL
             il.Emit(OpCodes.Ldloc_0); // stack is Exception, index
             il.Emit(OpCodes.Ldarg_0); // stack is Exception, index, reader
             LoadLocal(il, valueCopyLocal); // stack is Exception, index, reader, value
-            il.EmitCall(OpCodes.Call, typeof(SqlMapper).GetMethod(nameof(SqlMapper.ThrowDataException)), null);
+            il.EmitCall(OpCodes.Call, typeof(Mapper).GetMethod(nameof(Mapper.ThrowDataException)), null);
             il.EndExceptionBlock();
 
             il.Emit(OpCodes.Ldloc_1); // stack is [rval]

@@ -709,7 +709,7 @@ namespace Framework.Data.SQL
         {
             this.Prepare();
 
-            return SqlMapper.Query<T>(this.Connection, this.Command);
+            return Mapper.Query<T>(this.Connection, this.Command);
         }
 
         /// <summary>

@@ -6,7 +6,7 @@ namespace Framework.Data.SQL
     /// <summary>
     /// Represents simple member map for one of target parameter or property or field to source DataReader column
     /// </summary>
-    internal sealed class SimpleMemberMap : SqlMapper.IMemberMap
+    internal sealed class SimpleMemberMap : Mapper.IMemberMap
     {
         #region| Properties |
 
