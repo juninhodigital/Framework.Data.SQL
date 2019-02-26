@@ -1137,63 +1137,20 @@ namespace Framework.Data.SQL
         /// <param name="MustRaiseException">Indicates whether an exception will be throw in case of failure</param>
         public void BindList<T>(IDataReader oIDataReader, T Sender, Type oType, string TypeName, HashSet<string> oSchema, bool MustRaiseException) where T : BusinessEntityStructure
         {
-            #region| OLD 
+            //mappedProperty.Key   PropertyName;
+            //mappedProperty.Value ColumnName;
 
-            //var MustRaiseException = Core.Common.GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
-
-            //Type oType = Sender.GetType();
-
-            //foreach (var oProperty in Sender.MappedProperties)
-            //{
-            //    try
-            //    {
-            //        var oPropertyInfo = oType.GetProperty(oProperty.PropertyName);
-
-            //        if (oPropertyInfo == null)
-            //        {
-            //            if (MustRaiseException.IsNotNull() && MustRaiseException.IsEqual("true"))
-            //            {
-            //                throw new ArgumentException(string.Format("A propriedade {0} nao existe na classe {1}.", oProperty.PropertyName, oType.Name));
-            //            }
-            //        }
-            //        else
-            //        {
-            //            if (oSqlDataReader[oProperty.ColumnName] != null && oSqlDataReader[oProperty.ColumnName] != DBNull.Value)
-            //            {
-            //                oPropertyInfo.SetValue(Sender, Convert.ChangeType((oSqlDataReader[oProperty.ColumnName]), oPropertyInfo.PropertyType), null);
-            //            }
-            //        }
-            //    }
-            //    catch (IndexOutOfRangeException)
-            //    {
-            //        if (MustRaiseException.IsNotNull() && MustRaiseException.IsEqual("true"))
-            //        {
-            //            throw new ArgumentException(string.Format("IndexOutOfRangeException - A propriedade {0} da classe {1} está mapeada para o campo {2} que nao existe IDataReader.", oProperty.PropertyName, oType.Name, oProperty.ColumnName));
-            //        }
-            //    }
-            //    catch (NullReferenceException)
-            //    {
-            //        if (MustRaiseException.IsNotNull() && MustRaiseException.IsEqual("true"))
-            //        {
-            //            throw new ArgumentException(string.Format("NullReferenceException - A propriedade {0} da classe {1} está mapeada para o campo {2} que nao existe IDataReader.", oProperty.PropertyName, oType.Name, oProperty.ColumnName));
-            //        }
-            //    }
-            //} 
-            #endregion
-
-            for (int i = 0; i < Sender.MappedProperties.Count; i++)
+            foreach (var mappedProperty in Sender.MappedProperties)
             {
-                var oProperty = Sender.MappedProperties[i];
-
-                if (oSchema.Contains(oProperty.ColumnName))
+                if (oSchema.Contains(mappedProperty.Key))
                 {
-                    var oPropertyInfo = oType.GetProperty(oProperty.PropertyName, BindingFlags.Public | BindingFlags.Instance);
+                    var oPropertyInfo = oType.GetProperty(mappedProperty.Key, BindingFlags.Public | BindingFlags.Instance);
 
                     if (oPropertyInfo.IsNull())
                     {
                         if (MustRaiseException)
                         {
-                            throw new ArgumentException(string.Format("A propriedade '{0}' não existe na classe '{1}'.", oProperty.PropertyName, TypeName));
+                            throw new ArgumentException(string.Format("A propriedade '{0}' não existe na classe '{1}'.", mappedProperty.Key, TypeName));
                         }
                     }
                     else
@@ -1204,7 +1161,7 @@ namespace Framework.Data.SQL
                         if (oPropertyInfo.PropertyType.IsGenericType && oPropertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                         {
                             var oPropertyDescriptors = TypeDescriptor.GetProperties(typeof(T));
-                            var oPropertyDescriptor = oPropertyDescriptors.Find(oProperty.PropertyName, false);
+                            var oPropertyDescriptor = oPropertyDescriptors.Find(mappedProperty.Key, false);
                             var oUnderlyingType = Nullable.GetUnderlyingType(oPropertyDescriptor.PropertyType);
 
                             if (oUnderlyingType.IsNotNull())
@@ -1213,15 +1170,15 @@ namespace Framework.Data.SQL
 
                                 if (oConverter.IsNotNull())
                                 {
-                                    if (oIDataReader[oProperty.ColumnName] != null || oIDataReader[oProperty.ColumnName] == DBNull.Value)
+                                    if (oIDataReader[mappedProperty.Value] != null || oIDataReader[mappedProperty.Value] == DBNull.Value)
                                     {
-                                        if (oIDataReader[oProperty.ColumnName] == DBNull.Value)
+                                        if (oIDataReader[mappedProperty.Value] == DBNull.Value)
                                         {
                                             PropertyValue = null;
                                         }
                                         else
                                         {
-                                            PropertyValue = oConverter.ConvertFrom(oIDataReader[oProperty.ColumnName]);
+                                            PropertyValue = oConverter.ConvertFrom(oIDataReader[mappedProperty.Value]);
                                         }
                                     }
                                     else
@@ -1242,17 +1199,17 @@ namespace Framework.Data.SQL
                         }
                         else
                         {
-                            if (oIDataReader[oProperty.ColumnName] != null)
+                            if (oIDataReader[mappedProperty.Value] != null)
                             {
-                                if (oIDataReader[oProperty.ColumnName] != null || oIDataReader[oProperty.ColumnName] == DBNull.Value)
+                                if (oIDataReader[mappedProperty.Value] != null || oIDataReader[mappedProperty.Value] == DBNull.Value)
                                 {
-                                    if (oIDataReader[oProperty.ColumnName] == DBNull.Value)
+                                    if (oIDataReader[mappedProperty.Value] == DBNull.Value)
                                     {
                                         PropertyValue = null;
                                     }
                                     else
                                     {
-                                        PropertyValue = Convert.ChangeType((oIDataReader[oProperty.ColumnName]), oPropertyInfo.PropertyType);
+                                        PropertyValue = Convert.ChangeType((oIDataReader[mappedProperty.Value]), oPropertyInfo.PropertyType);
                                     }
                                 }
                                 else
@@ -1267,7 +1224,7 @@ namespace Framework.Data.SQL
                             }
                             else
                             {
-                                throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", oProperty.PropertyName, TypeName, oProperty.ColumnName));
+                                throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", mappedProperty.Key, TypeName, mappedProperty.Value));
                             }
                         }
                     }
@@ -1276,7 +1233,7 @@ namespace Framework.Data.SQL
                 {
                     if (MustRaiseException)
                     {
-                        throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", oProperty.PropertyName, TypeName, oProperty.ColumnName));
+                        throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", mappedProperty.Key, TypeName, mappedProperty.Value));
                     }
                 }
             }

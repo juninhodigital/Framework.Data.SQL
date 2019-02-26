@@ -10,24 +10,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public class Identity : IEquatable<Identity>
         {
-            public Identity(string sql, CommandType? commandType, string connectionString, Type type)
-            {
-                this.sql = sql;
-                this.commandType = commandType;
-                this.connectionString = connectionString;
-                this.type = type;
-               
-                unchecked
-                {
-                    hashCode = 17; // we *know* we are using this in a dictionary, so pre-compute this
-                    hashCode = (hashCode * 23) + commandType.GetHashCode();
-                    hashCode = (hashCode * 23) + gridIndex.GetHashCode();
-                    hashCode = (hashCode * 23) + (sql?.GetHashCode() ?? 0);
-                    hashCode = (hashCode * 23) + (type?.GetHashCode() ?? 0);
-                    hashCode = (hashCode * 23) + (connectionString == null ? 0 : connectionStringComparer.GetHashCode(connectionString));
-                   
-                }
-            }
+            #region| Properties |
 
             /// <summary>
             /// Whether this <see cref="Identity"/> equals another.
@@ -68,7 +51,34 @@ namespace Framework.Data.SQL
             /// <summary>
             /// The type of the parameters object for this Identity.
             /// </summary>
-            public readonly Type parametersType;
+            public readonly Type parametersType; 
+            #endregion
+
+            #region| Constructor |
+
+            public Identity(string statement, CommandType? commandType, string connectionString, Type type)
+            {
+                this.sql = statement;
+
+                this.commandType = commandType;
+                this.connectionString = connectionString;
+                this.type = type;
+
+                unchecked
+                {
+                    hashCode = 17; // we *know* we are using this in a dictionary, so pre-compute this
+                    hashCode = (hashCode * 23) + commandType.GetHashCode();
+                    hashCode = (hashCode * 23) + gridIndex.GetHashCode();
+                    hashCode = (hashCode * 23) + (sql?.GetHashCode() ?? 0);
+                    hashCode = (hashCode * 23) + (type?.GetHashCode() ?? 0);
+                    hashCode = (hashCode * 23) + (connectionString == null ? 0 : connectionStringComparer.GetHashCode(connectionString));
+
+                }
+            }
+
+            #endregion
+
+            #region| Methods |
 
             /// <summary>
             /// Gets the hash code for this identity.
@@ -90,7 +100,9 @@ namespace Framework.Data.SQL
                     && commandType == other.commandType
                     && connectionStringComparer.Equals(connectionString, other.connectionString)
                     && parametersType == other.parametersType;
-            }
+            } 
+
+            #endregion
         }
     }
 }

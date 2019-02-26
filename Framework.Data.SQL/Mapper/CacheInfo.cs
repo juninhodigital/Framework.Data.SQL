@@ -8,12 +8,33 @@ namespace Framework.Data.SQL
     {
         private class CacheInfo
         {
-            public DeserializerState Deserializer { get; set; }
+            #region| Fields |
+
+            private int hitCount; 
+
+            #endregion
+
+            #region| Properties |
+
+            public DeserializerState Deserializer { get; set; } 
             public Func<IDataReader, object>[] OtherDeserializers { get; set; }
             public Action<IDbCommand, object> ParamReader { get; set; }
-            private int hitCount;
-            public int GetHitCount() { return Interlocked.CompareExchange(ref hitCount, 0, 0); }
-            public void RecordHit() { Interlocked.Increment(ref hitCount); }
+
+            #endregion
+
+            #region| Methods |
+
+            public int GetHitCount()
+            {
+                return Interlocked.CompareExchange(ref hitCount, 0, 0);
+            }
+
+            public void RecordHit()
+            {
+                Interlocked.Increment(ref hitCount);
+            } 
+
+            #endregion
         }
     }
 }
