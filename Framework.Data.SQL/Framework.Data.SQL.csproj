@@ -10,22 +10,22 @@
     <PackageIconUrl>https://github.com/juninhodigital/Framework.Core/blob/master/Icons/FS_IconSmall.png?raw=true</PackageIconUrl>
     <RepositoryUrl>https://github.com/juninhodigital/Framework.Data.SQL</RepositoryUrl>
     <RepositoryType>Data Services, Data Helper, Data Library, SQL Library</RepositoryType>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Framework.Services.Core" Version="1.0.3" />
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.4" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.5" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.7" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.6" />
     <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Framework.Entity">
-      <HintPath>..\..\Framework.Entity\Framework.Entity\bin\Debug\netstandard2.0\Framework.Entity.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

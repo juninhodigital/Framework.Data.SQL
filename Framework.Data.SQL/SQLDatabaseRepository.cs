@@ -26,6 +26,8 @@ namespace Framework.Data.SQL
         /// </summary>
         public string InfoMessage { get; set; }
 
+        private const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty;
+
         #endregion
 
         #region| Fields |
@@ -689,28 +691,7 @@ namespace Framework.Data.SQL
             return output;
         }
 
-        /// <summary>
-        ///  Get a IDataReader based on the System.Data.CommandType and the given parameters
-        /// </summary>
-        /// <returns>System.Data.SqlClient.SqlDataReader</returns>
-        /// <example>
-        /// <code>
-        ///  public SqlDataReader FillDataReader()
-        ///  {
-        ///     this.Run("STORED_PROCEDURE_NAME");
-        ///  
-        ///     In("ACTION", "SELECT");
-        ///  
-        ///     return GetReader();
-        ///  }
-        /// </code>
-        /// </example>
-        public IEnumerable<T> Query<T>()
-        {
-            this.Prepare();
-
-            return Mapper.Query<T>(this.Connection, this.Command);
-        }
+       
 
         /// <summary>
         ///  Get a IDataReader based on the System.Data.CommandType and the given parameters
@@ -728,14 +709,14 @@ namespace Framework.Data.SQL
         ///  }
         /// </code>
         /// </example>
-        public IDataReader GetReader()
+        public SqlDataReader GetReader()
         {
             SqlDataReader output = null;
 
             this.Prepare();
 
             this.Command.Prepare();
-
+            
             output = this.Command.ExecuteReader(CommandBehavior.CloseConnection);
 
             return output;
@@ -847,8 +828,8 @@ namespace Framework.Data.SQL
                     this.Command.Connection = null;
                 }
 
-                //this.oSqlCommand.Dispose();
-                //this.oSqlCommand = null;
+                this.Command.Dispose();
+                this.Command = null;
             }
 
 
@@ -876,7 +857,7 @@ namespace Framework.Data.SQL
 
         #region| Mapper |
 
-        /// <summary>
+        /// <summar
         /// Returns an instance of the Business Entity Structured class whose properties will be filled with the information from the Database
         /// </summary>
         /// <param name="dataReader">IDataReader</param>
@@ -894,14 +875,14 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public T Map<T>(IDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure
+        public T Map<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
             if (dataReader.IsNull())
             {
                 dataReader = GetReader();
             }
 
-            if (dataReader.IsNotNull() && dataReader.IsClosed == false && ((SqlDataReader)dataReader).HasRows)
+            if (dataReader.HasRows())
             {
                 var items = GetList<T>(dataReader, isUsingNextResult);
 
@@ -922,6 +903,93 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
+        ///  Get a IDataReader based on the System.Data.CommandType and the given parameters  (using Reflection.Emit)
+        /// </summary>
+        /// <returns>System.Data.SqlClient.SqlDataReader</returns>
+        /// <example>
+        /// <code>
+        ///  public SqlDataReader FillDataReader()
+        ///  {
+        ///     this.Run("STORED_PROCEDURE_NAME");
+        ///  
+        ///     In("ACTION", "SELECT");
+        ///  
+        ///     return GetReader();
+        ///  }
+        /// </code>
+        /// </example>
+        public IEnumerable<T> Query<T>() where T: new()
+        {
+            this.Prepare();
+
+            return Mapper.Query<T>(this.Connection, this.Command);
+        }
+
+        /// <summary>
+        /// Returns a generic collection list with instances of the Business Entity Structured class 
+        /// whose properties will be filled with the information from the Database  (using Reflection.Emit)
+        /// </summary>
+        /// <param name="dataReader">IDataReader</param>
+        /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
+        /// <returns>Generic Collection List</returns>
+        /// <example>
+        ///     <code>
+        ///     public List<![CDATA[<UsuarioInfo>]]> Pesquisar()
+        ///     {
+        ///         this.Run("SPS_PROCEDURENAME");
+        ///
+        ///         In("PARAMETERNAME_ID", ID);
+        ///
+        ///         return Mapper.GetList<![CDATA[<UsuarioInfo>]]>();
+        ///     }
+        ///     </code>
+        /// </example>
+        public IEnumerable<T> GetListOptimized<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        {
+            T Sender = ActivatorFactory.CreateInstance<T>();
+
+            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            {
+                if (dataReader == null)
+                {
+                    dataReader = GetReader();
+                }
+
+                try
+                {
+                    if (dataReader.HasRows())
+                    {
+                        var schema = dataReader.GetSchema();
+
+                        var function = ExpressionLambdaFactory.GetReaderOptimized<T>(Sender, schema);
+
+                        while (dataReader.Read())
+                        {
+                            yield return function(dataReader);
+                        }
+
+                        schema = null;
+                    }
+                }
+                finally
+                {
+                    if (!isUsingNextResult)
+                    {
+                        if (dataReader != null)
+                        {
+                            dataReader.Close();
+                            dataReader.Dispose();
+                        }
+
+                        this.Release();
+                    }
+
+                    Sender.Dispose();                  
+                }
+            }
+        }
+
+
         /// Returns a generic collection list with instances of the Business Entity Structured class 
         /// whose properties will be filled with the information from the Database
         /// </summary>
@@ -940,28 +1008,24 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public IEnumerable<T> GetList<T>(IDataReader oIDataReader = null, bool IsUsingNextResult = false) where T : BusinessEntityStructure
+        public IEnumerable<T> GetList<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
             T Sender = Activator.CreateInstance<T>();
-
-            List<T> Aux = null;
 
             if (Sender != null && Sender.MappedProperties.IsNotNull())
             {
                 Sender.Dispose();
 
-                if (oIDataReader == null)
+                if (dataReader == null)
                 {
-                    oIDataReader = GetReader();
+                    dataReader = GetReader();
                 }
 
                 try
                 {
-                    if (oIDataReader.IsNotNull() && oIDataReader.IsClosed == false && ((SqlDataReader)oIDataReader).HasRows)
+                    if (dataReader.HasRows())
                     {
-                        Aux = new List<T>();
-
-                        var oSchema = GetSchema(oIDataReader);
+                        var schema = dataReader.GetSchema();
                         var oType = typeof(T);
                         var TypeName = oType.Name;
                         var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
@@ -971,56 +1035,38 @@ namespace Framework.Data.SQL
                             MustRaiseException = "false";
                         }
 
-                        while (oIDataReader.Read())
+                        while (dataReader.Read())
                         {
                             Sender = Activator.CreateInstance<T>();
-                            BindList(oIDataReader, Sender, oType, TypeName, oSchema, bool.Parse(MustRaiseException));
+                            BindList(dataReader, Sender, oType, TypeName, schema, bool.Parse(MustRaiseException));
 
                             Sender.MappedProperties = null;
 
-                            Aux.Add(Sender);
+                            yield return Sender;
                         }
 
-                        oSchema = null;
+                        schema = null;
                         oType = null;
                     }
-                    else
-                    {
-                        Aux = new List<T>();
-                    }
-                }
-                catch (Exception)
-                {
-                    if (Aux.IsNull())
-                    {
-                        Aux = new List<T>();
-                    }
-                    else
-                    {
-                        Aux.Clear();
-                    }
-
-                    oIDataReader.Close();
-                    oIDataReader.Dispose();
-
-                    throw;
                 }
                 finally
                 {
-                    if (!IsUsingNextResult)
+                    if (!isUsingNextResult)
                     {
-                        if (oIDataReader != null)
+                        if (dataReader != null)
                         {
-                            oIDataReader.Close();
-                            oIDataReader.Dispose();
+                            dataReader.Close();
+                            dataReader.Dispose();
+
+                            dataReader = null;
                         }
 
                         this.Release();
                     }
+
+                    Sender.Dispose();
                 }
             }
-
-            return Aux;
         }
 
         /// <summary>
@@ -1039,7 +1085,7 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetPrimitiveList<T>(IDataReader oIDataReader = null) where T : IComparable
+        public List<T> GetPrimitiveList<T>(IDataReader oIDataReader = null) where T : IComparable, new()
         {
             List<T> output = null;
 
@@ -1063,7 +1109,7 @@ namespace Framework.Data.SQL
 
                     while (oIDataReader.Read())
                     {
-                        T PropertyValue = Activator.CreateInstance<T>();
+                        T PropertyValue = ActivatorFactory.CreateInstance<T>();
 
                         if (oIDataReader[0] != null || oIDataReader[0] == DBNull.Value)
                         {
@@ -1122,140 +1168,57 @@ namespace Framework.Data.SQL
             return output;
         }
 
-
         /// <summary>
         /// Fill the property value of the Business Entity Structured Class with the information in the IDataReader
         /// </summary>
-        /// <param name="oIDataReader">IDataReader</param>
+        /// <param name="dataReader">IDataReader</param>
         /// <param name="Sender">Class derived from the Framework.Entity.BussinessEntityStructure class</param>
-        /// <param name="oType">Type of Sender</param>
-        /// <param name="TypeName">Gets the name of the current member.</param>
-        /// <param name="oSchema">List of the columns avaiable in the SqlDataReader</param>
-        /// <param name="MustRaiseException">Indicates whether an exception will be throw in case of failure</param>
-        public void BindList<T>(IDataReader oIDataReader, T Sender, Type oType, string TypeName, HashSet<string> oSchema, bool MustRaiseException) where T : BusinessEntityStructure
+        /// <param name="type">Type of Sender</param>
+        /// <param name="typeName">Gets the name of the current member.</param>
+        /// <param name="schema">List of the columns avaiable in the SqlDataReader</param>
+        /// <param name="mustRaiseException">Indicates whether an exception will be throw in case of failure</param>
+        public void BindList<T>(IDataReader dataReader, T Sender, Type type, string typeName, HashSet<string> schema, bool mustRaiseException) where T : BusinessEntityStructure
         {
             //mappedProperty.Key   PropertyName;
             //mappedProperty.Value ColumnName;
 
             foreach (var mappedProperty in Sender.MappedProperties)
             {
-                if (oSchema.Contains(mappedProperty.Key))
-                {
-                    var oPropertyInfo = oType.GetProperty(mappedProperty.Key, BindingFlags.Public | BindingFlags.Instance);
-
-                    if (oPropertyInfo.IsNull())
+                if (schema.IsNotNull() && schema.Contains(mappedProperty.Key))
+                {                 
+                    if (dataReader[mappedProperty.Value] != null)
                     {
-                        if (MustRaiseException)
+                        object PropertyValue = null;
+
+                        if (dataReader[mappedProperty.Value] == DBNull.Value)
                         {
-                            throw new ArgumentException(string.Format("A propriedade '{0}' não existe na classe '{1}'.", mappedProperty.Key, TypeName));
+                            PropertyValue = null;
+                        }
+                        else
+                        {
+                            //PropertyValue = Convert.ChangeType((oIDataReader[mappedProperty.Value]), oPropertyInfo.PropertyType);
+                            PropertyValue = dataReader[mappedProperty.Value];
+                        }
+
+                        if (PropertyValue.IsNotNull())
+                        {
+                            type.InvokeMember(mappedProperty.Key, bindingFlags, Type.DefaultBinder, Sender, new object[] { PropertyValue });
                         }
                     }
                     else
                     {
-                        object PropertyValue = null;
-
-                        // If the underlying type is nullable
-                        if (oPropertyInfo.PropertyType.IsGenericType && oPropertyInfo.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
+                        if (mustRaiseException)
                         {
-                            var oPropertyDescriptors = TypeDescriptor.GetProperties(typeof(T));
-                            var oPropertyDescriptor = oPropertyDescriptors.Find(mappedProperty.Key, false);
-                            var oUnderlyingType = Nullable.GetUnderlyingType(oPropertyDescriptor.PropertyType);
-
-                            if (oUnderlyingType.IsNotNull())
-                            {
-                                var oConverter = oPropertyDescriptor.Converter;
-
-                                if (oConverter.IsNotNull())
-                                {
-                                    if (oIDataReader[mappedProperty.Value] != null || oIDataReader[mappedProperty.Value] == DBNull.Value)
-                                    {
-                                        if (oIDataReader[mappedProperty.Value] == DBNull.Value)
-                                        {
-                                            PropertyValue = null;
-                                        }
-                                        else
-                                        {
-                                            PropertyValue = oConverter.ConvertFrom(oIDataReader[mappedProperty.Value]);
-                                        }
-                                    }
-                                    else
-                                    {
-                                        PropertyValue = null;
-                                    }
-
-                                    if (PropertyValue.IsNotNull())
-                                    {
-                                        oPropertyInfo.SetValue(Sender, PropertyValue, null);
-                                    }
-                                }
-                            }
-
-                            oPropertyDescriptors = null;
-                            oPropertyDescriptor = null;
-                            oUnderlyingType = null;
-                        }
-                        else
-                        {
-                            if (oIDataReader[mappedProperty.Value] != null)
-                            {
-                                if (oIDataReader[mappedProperty.Value] != null || oIDataReader[mappedProperty.Value] == DBNull.Value)
-                                {
-                                    if (oIDataReader[mappedProperty.Value] == DBNull.Value)
-                                    {
-                                        PropertyValue = null;
-                                    }
-                                    else
-                                    {
-                                        PropertyValue = Convert.ChangeType((oIDataReader[mappedProperty.Value]), oPropertyInfo.PropertyType);
-                                    }
-                                }
-                                else
-                                {
-                                    PropertyValue = null;
-                                }
-
-                                if (PropertyValue.IsNotNull())
-                                {
-                                    oPropertyInfo.SetValue(Sender, PropertyValue, null);
-                                }
-                            }
-                            else
-                            {
-                                throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", mappedProperty.Key, TypeName, mappedProperty.Value));
-                            }
+                            throw new ArgumentException($"NullReferenceException - A propriedade '{mappedProperty.Key}' da classe '{typeName}' está mapeada para o campo '{mappedProperty.Value}' que nao existe IDataReader.");
                         }
                     }
+
                 }
                 else
                 {
-                    if (MustRaiseException)
-                    {
-                        throw new ArgumentException(string.Format("NullReferenceException - A propriedade '{0}' da classe '{1}' está mapeada para o campo '{2}' que nao existe IDataReader.", mappedProperty.Key, TypeName, mappedProperty.Value));
-                    }
+                    // Do nothing
                 }
             }
-        }
-
-        /// <summary>
-        /// Returns a System.Data.DataTable that describes the column metadata of the IDataReader
-        /// </summary>
-        /// <param name="oIDataReader"></param>
-        /// <returns></returns>
-        public HashSet<string> GetSchema(IDataReader oIDataReader)
-        {
-            var oList = new HashSet<string>();
-            var oSchema = oIDataReader.GetSchemaTable();
-
-            foreach (DataRow oRow in oSchema.Rows)
-            {
-                var ColumnName = oRow["ColumnName"].ToString();
-
-                oList.Add(ColumnName);
-            }
-
-            oSchema.Dispose();
-
-            return oList;
         }
 
         #endregion
@@ -1281,6 +1244,16 @@ namespace Framework.Data.SQL
             }
 
             GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Returns a System.Data.DataTable that describes the column metadata of the IDataReader
+        /// </summary>
+        /// <param name="dataReader"></param>
+        /// <returns></returns>
+        public HashSet<string> GetSchema(IDataReader dataReader)
+        {
+            return dataReader.GetSchema();
         }
 
         #endregion
