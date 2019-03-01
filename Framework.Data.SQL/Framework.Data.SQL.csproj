@@ -10,10 +10,11 @@
     <PackageIconUrl>https://github.com/juninhodigital/Framework.Core/blob/master/Icons/FS_IconSmall.png?raw=true</PackageIconUrl>
     <RepositoryUrl>https://github.com/juninhodigital/Framework.Data.SQL</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageTags>Data Services, Data Helper, Data Library, SQL Library</PackageTags>
+    <PackageId>Framework.Services.Data.SQL</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
