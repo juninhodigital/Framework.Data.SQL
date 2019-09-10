@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
@@ -26,7 +25,20 @@ namespace Framework.Data.SQL
         /// </summary>
         public string InfoMessage { get; set; }
 
+        /// <summary>
+        /// Binding Flags
+        /// </summary>
         private const BindingFlags bindingFlags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty;
+
+        /// <summary>
+        /// Indicates the local path to store the executed T-SQL statements
+        /// </summary>
+        public string ProfilePath { get; private set; } = null;
+
+        /// <summary>
+        /// Indicates whether an exception will be throw in case of failure
+        /// </summary>
+        public readonly bool MustThrowMappingExceptions = false;
 
         #endregion
 
@@ -64,9 +76,11 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Default Constructor
         /// </summary>
-        public SQLDatabaseRepository()
+        /// <param name="mustThrowMappingExceptions">File path to log the T-SQL Statements</param>
+        public SQLDatabaseRepository(bool mustThrowMappingExceptions = false, string profilePath = "")
         {
-            // Your code goes here...
+            this.MustThrowMappingExceptions = mustThrowMappingExceptions;
+            this.ProfilePath                = profilePath;
         }
 
         #endregion
@@ -354,14 +368,18 @@ namespace Framework.Data.SQL
         /// </summary>
         public void IsProfilerEnabled()
         {
-            var profilePath = GetAppSettings("FRAMEWORK.PROFILE.PATH");
-
-            if (profilePath.IsNotNull())
+            if (this.ProfilePath.IsNotNull())
             {
-                var SQL = PreviewSQL();
+                if (File.Exists(this.ProfilePath))
+                {
+                    var SQL = PreviewSQL();
 
-                File.AppendAllText(profilePath, SQL + Environment.NewLine);
-
+                    File.AppendAllText(this.ProfilePath, SQL + Environment.NewLine);
+                }
+                else
+                {
+                    throw new FileNotFoundException($"The given file '{this.ProfilePath}' does not exist");
+                }
             }
         }
 
@@ -1028,17 +1046,11 @@ namespace Framework.Data.SQL
                         var schema = dataReader.GetSchema();
                         var oType = typeof(T);
                         var TypeName = oType.Name;
-                        var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
-
-                        if (MustRaiseException.IsNull())
-                        {
-                            MustRaiseException = "false";
-                        }
-
+                       
                         while (dataReader.Read())
                         {
                             Sender = Activator.CreateInstance<T>();
-                            BindList(dataReader, Sender, oType, TypeName, schema, bool.Parse(MustRaiseException));
+                            BindList(dataReader, Sender, oType, TypeName, schema, this.MustThrowMappingExceptions);
 
                             Sender.MappedProperties = null;
 
@@ -1099,13 +1111,6 @@ namespace Framework.Data.SQL
                 if (oIDataReader.IsNotNull() && oIDataReader.IsClosed == false && ((SqlDataReader)oIDataReader).HasRows)
                 {
                     output = new List<T>();
-
-                    var MustRaiseException = GetAppSettings("FRAMEWORK.RAISE.EXCEPTION");
-
-                    if (MustRaiseException.IsNull())
-                    {
-                        MustRaiseException = "false";
-                    }
 
                     while (oIDataReader.Read())
                     {
