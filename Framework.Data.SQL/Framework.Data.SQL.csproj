@@ -4,13 +4,12 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <Description>It is a .NET Core/Standard library that provides base class that provides methods to handle SQL Server statements optimizing performance</Description>
     <Authors>Jose Carlos de Jesus Junior</Authors>
-    <Copyright>Copyright 2018</Copyright>
-    <PackageLicenseUrl>https://github.com/juninhodigital/Framework.Data.SQL/blob/master/LICENSE</PackageLicenseUrl>
+    <Copyright>Copyright 2018</Copyright>    
     <PackageProjectUrl>https://github.com/juninhodigital/Framework.Data.SQL</PackageProjectUrl>
     <PackageIconUrl>https://github.com/juninhodigital/Framework.Core/blob/master/Icons/FS_IconSmall.png?raw=true</PackageIconUrl>
     <RepositoryUrl>https://github.com/juninhodigital/Framework.Data.SQL</RepositoryUrl>
     <RepositoryType>Github</RepositoryType>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageTags>Data Services, Data Helper, Data Library, SQL Library</PackageTags>
@@ -22,11 +21,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Framework.Services.Core" Version="1.0.3" />
-    <PackageReference Include="Framework.Services.Cryptography" Version="1.0.4" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.7" />
+    <PackageReference Include="Framework.Services.Core" Version="1.0.4" />
+    <PackageReference Include="Framework.Services.Cryptography" Version="1.0.5" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.9" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.6" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
   </ItemGroup>
 
