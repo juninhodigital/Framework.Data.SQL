@@ -27,15 +27,10 @@
   <ItemGroup>
     <PackageReference Include="Framework.Services.Core" Version="1.0.4" />
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.6" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.11" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.7" />
     <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
     <PackageReference Include="System.Reflection.Emit.Lightweight" Version="4.3.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Framework.Data">
-      <HintPath>..\..\Framework.Data\Framework.Data\bin\Release\netstandard2.0\Framework.Data.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

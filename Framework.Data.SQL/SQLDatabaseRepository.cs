@@ -570,6 +570,8 @@ namespace Framework.Data.SQL
         {
             this.CommandText = statement;
             this.CommandType = commandType;
+
+            //this.Prepare();
         }
 
         /// <summary>
@@ -818,6 +820,14 @@ namespace Framework.Data.SQL
             IsProfilerEnabled();
         }
 
+        public void ResetParameters()
+        {
+            if (this.Command.IsNotNull())
+            {
+                this.Command.Parameters.Clear();
+            }
+        }
+
         /// <summary>
         /// Closes the connection to the database. This is the preferred method of closing any open connection.
         /// Closes the command used to execute statements on the database
@@ -857,8 +867,6 @@ namespace Framework.Data.SQL
                     this.Command = null;
                 }
             }
-
-
         }
 
         /// <summary>

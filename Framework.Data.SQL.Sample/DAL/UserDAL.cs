@@ -106,7 +106,7 @@ namespace DAL
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
 
-            this.Execute();
+            this.Execute(false);
         }
 
         /// <summary>
