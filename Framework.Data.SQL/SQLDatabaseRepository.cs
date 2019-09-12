@@ -829,6 +829,17 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
+        ///  Removes all the System.Data.SqlClient.SqlParameter objects from the System.Data.SqlClient.SqlParameterCollection
+        /// </summary>
+        public void ClearParameters()
+        {
+            if(this.Command.IsNotNull())
+            {
+                this.Command.Parameters.Clear();
+            }
+        }
+
+        /// <summary>
         /// Closes the connection to the database. This is the preferred method of closing any open connection.
         /// Closes the command used to execute statements on the database
         /// </summary>

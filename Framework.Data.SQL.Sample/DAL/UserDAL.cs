@@ -81,7 +81,7 @@ namespace DAL
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
 
-            this.Execute(false);
+            this.Execute();
 
             var output = GetValue<int>("P_ID");
 
@@ -106,7 +106,7 @@ namespace DAL
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
 
-            this.Execute(false);
+            this.Execute();
         }
 
         /// <summary>

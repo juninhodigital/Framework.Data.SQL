@@ -1,12 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using Xunit;
 
-using Framework.Data;
-using Framework.Data.SQL;
 using BLL;
-using System.Linq;
 using BES;
-using System.Collections.Generic;
 
 namespace Framework.Data.SQL.Tests
 {
@@ -24,15 +23,16 @@ namespace Framework.Data.SQL.Tests
             return container;
         } 
 
-        private UserBES GetPayload()
+        private UserBES GetPayload(int ID = 0)
         {
             return new UserBES
             {
-                Name     = "User test",
-                Nickname = "Nickname",
-                CPF      = new Random().Next(999, 5000).ToString(),
-                RG       = new Random().Next(999, 5000).ToString(),
-                Enabled  = true,
+                ID        = ID,
+                Name      = "User test",
+                Nickname  = "Nickname",
+                CPF       = new Random().Next(999, 5000).ToString(),
+                RG        = new Random().Next(999, 5000).ToString(),
+                Enabled   = true,
                 Addresses = new List<AddressBES>
                 {
                     new AddressBES{ Address = "Rua teste 1", Enabled=true },
@@ -44,7 +44,7 @@ namespace Framework.Data.SQL.Tests
         #endregion
 
         [Fact]
-        public void Run()
+        public void Save()
         {
             var container = GetContainer();
             var payload   = GetPayload();
@@ -52,12 +52,39 @@ namespace Framework.Data.SQL.Tests
             using (var BLL = new UserBLL(container))
             {
                 payload.ID  = BLL.Save(payload);
-                payload.Name += " Updated";
+            }
 
+            Assert.True(true);
+        }
+
+        [Fact]
+        public void Update()
+        {
+            var container = GetContainer();
+            var payload   = GetPayload(1);
+
+            using (var BLL = new UserBLL(container))
+            {
                 BLL.Update(payload);
 
                 var users = BLL.Get().ToList();
-                var user  = BLL.GetByID(payload.ID);
+                var user = BLL.GetByID(payload.ID);
+
+            }
+
+            Assert.True(true);
+        }
+
+        [Fact]
+        public void Get()
+        {
+            var container = GetContainer();
+            var payload = GetPayload();
+
+            using (var BLL = new UserBLL(container))
+            {
+                var users = BLL.Get().ToList();
+                var user = BLL.GetByID(payload.ID);
 
             }
 
