@@ -576,11 +576,12 @@ namespace Framework.Data.SQL
         /// Executes the query, and returns the first column of the first row in the
         /// result set returned by the query. Additional columns or rows are ignored.
         /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
         /// <returns>
         /// The first column of the first row in the result set, or a null reference if the result set is empty. 
         /// Returns a maximum of 2033 characters.
         /// </returns>
-        public T GetScalar<T>()
+        public T GetScalar<T>(bool stopExecutionImmediately = true)
         {
             T output = default(T);
 
@@ -593,7 +594,7 @@ namespace Framework.Data.SQL
             }
             finally
             {
-                this.Release();
+                this.Release(stopExecutionImmediately);
             }
 
             return output;
@@ -631,6 +632,7 @@ namespace Framework.Data.SQL
         /// <summary>
         ///  Adds or refreshes rows in a specified range in the System.Data.DataSet to match those in the data source using the System.Data.DataTable name.
         /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
         /// <returns>System.Data.DataTable</returns>
         /// <example>
         /// <code>
@@ -644,7 +646,7 @@ namespace Framework.Data.SQL
         /// }
         /// </code>
         /// </example>
-        public DataTable GetDataTable()
+        public DataTable GetDataTable(bool stopExecutionImmediately = true)
         {
             var output = new DataTable();
 
@@ -663,7 +665,7 @@ namespace Framework.Data.SQL
             }
             finally
             {
-                this.Release();
+                this.Release(stopExecutionImmediately);
             }
 
             return output;
@@ -672,6 +674,7 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Adds or refreshes rows in the System.Data.DataSet.
         /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
         /// <returns>System.Data.DataSet</returns>
         /// <example>
         /// <code>
@@ -685,7 +688,7 @@ namespace Framework.Data.SQL
         ///  }
         /// </code>
         /// </example>
-        public DataSet GetDataSet()
+        public DataSet GetDataSet(bool stopExecutionImmediately = true)
         {
             var output = new DataSet();
 
@@ -703,7 +706,7 @@ namespace Framework.Data.SQL
             }
             finally
             {
-                this.Release();
+                this.Release(stopExecutionImmediately);
             }
 
             return output;
@@ -744,6 +747,7 @@ namespace Framework.Data.SQL
         /// <summary>
         /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
         /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
         /// <example>
         /// <code>
         ///     public void Inserir(UsuarioBES UsuarioI)
@@ -759,7 +763,7 @@ namespace Framework.Data.SQL
         /// </code>
         /// </example>
         /// <returns>The number of rows affected</returns>
-        public int Execute()
+        public int Execute(bool stopExecutionImmediately = true)
         {
             var output = 0;
 
@@ -771,7 +775,7 @@ namespace Framework.Data.SQL
             }
             finally
             {
-                this.Release();
+                this.Release(stopExecutionImmediately);
             }
 
             return output;
@@ -818,36 +822,40 @@ namespace Framework.Data.SQL
         /// Closes the connection to the database. This is the preferred method of closing any open connection.
         /// Closes the command used to execute statements on the database
         /// </summary>
-        public void Release()
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        public void Release(bool stopExecutionImmediately = true)
         {
-            if (this.Connection != null)
+            if (stopExecutionImmediately)
             {
-                if (this.Connection.State == ConnectionState.Open)
+                if (this.Connection != null)
                 {
-                    this.Connection.Close();
-                }
-
-                //this.SqlConnection.ClearPool(Command.Connection);
-                this.Connection.Dispose();
-                this.Connection = null;
-            }
-
-            if (this.Command != null)
-            {
-                if (this.Command.Connection != null)
-                {
-                    if (this.Command.Connection.State == ConnectionState.Open)
+                    if (this.Connection.State == ConnectionState.Open)
                     {
-                        this.Command.Connection.Close();
+                        this.Connection.Close();
                     }
 
                     //this.SqlConnection.ClearPool(Command.Connection);
-                    this.Command.Connection.Dispose();
-                    this.Command.Connection = null;
+                    this.Connection.Dispose();
+                    this.Connection = null;
                 }
 
-                this.Command.Dispose();
-                this.Command = null;
+                if (this.Command != null)
+                {
+                    if (this.Command.Connection != null)
+                    {
+                        if (this.Command.Connection.State == ConnectionState.Open)
+                        {
+                            this.Command.Connection.Close();
+                        }
+
+                        //this.SqlConnection.ClearPool(Command.Connection);
+                        this.Command.Connection.Dispose();
+                        this.Command.Connection = null;
+                    }
+
+                    this.Command.Dispose();
+                    this.Command = null;
+                }
             }
 
 
@@ -902,7 +910,7 @@ namespace Framework.Data.SQL
 
             if (dataReader.HasRows())
             {
-                var items = GetList<T>(dataReader, isUsingNextResult);
+                var items = GetList<T>(dataReader, isUsingNextResult).ToList();
 
                 if (items != null && items.Any())
                 {

@@ -323,7 +323,7 @@ namespace Framework.Data.SQL
             {
                 return cmd.ExecuteReader(GetBehavior(wasClosed, behavior));
             }
-            catch (ArgumentException ex)
+            catch (ArgumentException)
             {
                 throw;
             }

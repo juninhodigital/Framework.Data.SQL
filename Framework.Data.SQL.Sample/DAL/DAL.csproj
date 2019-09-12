@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BES\BES.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Framework.Data">
+      <HintPath>..\..\..\Framework.Data\Framework.Data\bin\Release\netstandard2.0\Framework.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

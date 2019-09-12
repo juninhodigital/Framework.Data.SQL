@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <AssemblyName>BLL</AssemblyName>
+    <RootNamespace>BLL</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FluentValidation" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BES\BES.csproj" />
+    <ProjectReference Include="..\DAL\DAL.csproj" />
+    <ProjectReference Include="..\Validation\Validation.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Framework.Data">
+      <HintPath>..\..\..\Framework.Data\Framework.Data\bin\Release\netstandard2.0\Framework.Data.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
