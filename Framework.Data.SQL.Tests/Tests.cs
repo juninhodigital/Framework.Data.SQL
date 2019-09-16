@@ -22,7 +22,7 @@ namespace Framework.Data.SQL.Tests
 
         private ContainerDI GetContainer(bool previewDetails=false)
         {
-            var connection = "Password=p@ssw0rd;Persist Security Info=True;User ID=sa;Initial Catalog=DB_SYSADV;Data Source=LOCALHOST";
+            var connection = "Password=p@ssw0rd;Persist Security Info=True;User ID=sa;Initial Catalog=DEMO;Data Source=LOCALHOST";
             var timeout    = 60;
             var path       = "";
 
