@@ -10,10 +10,11 @@ Features
 - [x] Log T-SQL statements easily;
 - [x] Fully support to MARS;
 - [x] Multiple Result Set technique;
+- [x] Unit test that contains some sample code (XUnit);
 
-### TO DO
-- [X] **Add Unit testing project**
-- [X] **Create Unit tests**
+### Instructions
+- [X] **Setup your database using the file '$\Database\Scripts\Initial Payload.sql'**
+- [X] **Check out the unit tests and debug/run the sample codes**
 
 ## Download
 
