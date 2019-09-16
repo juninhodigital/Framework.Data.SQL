@@ -6,8 +6,8 @@ Technologies
 - [x] .NET Core and .NET Standard
 
 ### TO DO
-- [ ] **Add Unit testing project**
-- [ ] **Create Unit tests**
+- [X] **Add Unit testing project**
+- [X] **Create Unit tests**
 
 ## Download
 
