@@ -6,10 +6,11 @@ Technologies
 - [x] .NET Core and .NET Standard
 
 Features
-- [x] Preview T-SQL statements (including Table Value Parameters);
+- [x] It doesn't use reflection to map the entity properties, instead it uses IL/Cache capabilities;
+- [x] Developer can preview T-SQL statements (including Table Value Parameters);
 - [x] Log T-SQL statements easily;
-- [x] Fully support to MARS;
-- [x] Multiple Result Set technique;
+- [x] MARS full support;
+- [x] Multiple Result Set;
 - [x] Unit test that contains some sample code (XUnit);
 
 ### Instructions
