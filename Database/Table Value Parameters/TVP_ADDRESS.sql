@@ -1,0 +1,18 @@
+USE DB_SYSADV
+GO
+
+EXEC SP_DROP_IF_EXISTS 'TVP_ADDRESS'
+GO
+
+CREATE TYPE TVP_ADDRESS AS TABLE
+(
+	ID				int NULL,
+	Address			varchar(100),
+	UserCode		int,
+	Enabled			bit
+)
+GO
+
+GRANT EXECUTE ON TYPE::TVP_ADDRESS to PUBLIC
+GO
+
