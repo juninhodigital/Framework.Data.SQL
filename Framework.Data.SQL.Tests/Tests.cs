@@ -6,19 +6,32 @@ using Xunit;
 
 using BLL;
 using BES;
+using Xunit.Abstractions;
 
 namespace Framework.Data.SQL.Tests
 {
     public class Tests
     {
+        #region| Properties |
+
+        private readonly ITestOutputHelper output;
+
+        #endregion
+
         #region| Methods |
 
-        private ContainerDI GetContainer()
+        private ContainerDI GetContainer(bool previewDetails=false)
         {
             var connection = "Password=p@ssw0rd;Persist Security Info=True;User ID=sa;Initial Catalog=DB_SYSADV;Data Source=LOCALHOST";
-            var timeout = 60;
+            var timeout    = 60;
+            var path       = "";
 
-            var container = new ContainerDI(new SQLDatabaseContext(connection, timeout), new SQLDatabaseRepository());
+            if(previewDetails)
+            {
+                path = @"D:\preview.txt";
+            }
+
+            var container = new ContainerDI(new SQLDatabaseContext(connection, timeout), new SQLDatabaseRepository(false, path));
 
             return container;
         } 
@@ -43,9 +56,20 @@ namespace Framework.Data.SQL.Tests
 
         #endregion
 
+        #region| Constructor |
+
+        public Tests(ITestOutputHelper outputHelper)
+        {
+            this.output = outputHelper;
+        }
+
+        #endregion
+
         [Fact]
         public void Save()
         {
+            output.WriteLine("Test: Save started");
+
             var container = GetContainer();
             var payload   = GetPayload();
                      
@@ -54,41 +78,69 @@ namespace Framework.Data.SQL.Tests
                 payload.ID  = BLL.Save(payload);
             }
 
-            Assert.True(true);
+            Assert.True(payload.ID > 0);
+
+            output.WriteLine($"Test: Save finished. User ID: {payload.ID}");
         }
 
         [Fact]
         public void Update()
         {
+            output.WriteLine("Test: Update started");
+
+            // Use a valid user id
+            var userId    = 1;
             var container = GetContainer();
-            var payload   = GetPayload(1);
+            var payload   = GetPayload(userId);
 
             using (var BLL = new UserBLL(container))
             {
                 BLL.Update(payload);
-
-                var users = BLL.Get().ToList();
-                var user = BLL.GetByID(payload.ID);
-
             }
 
             Assert.True(true);
+
+            output.WriteLine("Test: Update finished");
         }
 
         [Fact]
-        public void Get()
+        public void GetItems()
         {
+            output.WriteLine("Test: Get items started");
+
+            var users     = new List<UserBES>();
             var container = GetContainer();
-            var payload = GetPayload();
 
             using (var BLL = new UserBLL(container))
             {
-                var users = BLL.Get().ToList();
-                var user = BLL.GetByID(payload.ID);
-
+                users = BLL.Get().ToList();
             }
 
-            Assert.True(true);
+            Assert.Contains(users, user => user.Nickname == "Junior");
+
+            output.WriteLine($"Test: Get items finished. Users count: {users.Count} ");
+        }
+
+        [Fact]
+        public void GetItem()
+        {
+            output.WriteLine("Test: Get item started");
+
+            // Use a valid user id
+            var userId    = 1;
+            var container = GetContainer();
+            var payload   = GetPayload(userId);
+
+            UserBES user = null;
+
+            using (var BLL = new UserBLL(container))
+            {
+                user = BLL.GetByID(payload.ID);
+            }
+
+            Assert.NotNull(user);
+
+            output.WriteLine($"Test: Get item finished. User ID: {user.ID}");
         }
     }
 }

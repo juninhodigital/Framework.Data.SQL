@@ -370,16 +370,15 @@ namespace Framework.Data.SQL
         {
             if (this.ProfilePath.IsNotNull())
             {
-                if (File.Exists(this.ProfilePath))
+                if (!Directory.Exists(Path.GetDirectoryName(this.ProfilePath)))
                 {
-                    var SQL = PreviewSQL();
+                    Directory.CreateDirectory(Path.GetDirectoryName(this.ProfilePath));
+                }
+               
+                var SQL   = PreviewSQL();
+                var BREAK = "-".Repeat(100);
 
-                    File.AppendAllText(this.ProfilePath, SQL + Environment.NewLine);
-                }
-                else
-                {
-                    throw new FileNotFoundException($"The given file '{this.ProfilePath}' does not exist");
-                }
+                File.AppendAllText(this.ProfilePath, SQL + BREAK + Environment.NewLine);
             }
         }
 
@@ -397,25 +396,21 @@ namespace Framework.Data.SQL
                 // Check if exists table value parameters
                 if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
                 {
-                    var HasTVP = false;
-
                     for (int i = 0; i < Command.Parameters.Count; i++)
                     {
                         var oParam = Command.Parameters[i];
 
                         if (oParam.SqlDbType == SqlDbType.Structured)
                         {
-                            HasTVP = true;
-
                             var DT = oParam.Value as DataTable;
 
                             if (DT.IsNotNull() && DT.Rows.Count > 0)
                             {
-                                oStringBuilder.Append("DECLARE " + oParam.ParameterName + " " + oParam.ParameterName.Replace("@", "") + BR + BR);
+                                oStringBuilder.Append($"DECLARE {oParam.ParameterName} {oParam.ParameterName.Replace("@P_", "").Replace("@", "")} {BR}{BR}");
 
                                 for (int z = 0; z < DT.Rows.Count; z++)
                                 {
-                                    oStringBuilder.Append("INSERT " + oParam.ParameterName);
+                                    oStringBuilder.Append($"INSERT {oParam.ParameterName}");
 
                                     DataRow oRow = DT.Rows[z];
 
@@ -427,29 +422,23 @@ namespace Framework.Data.SQL
                                             oStringBuilder.Append("SELECT ");
                                         }
 
-                                        oStringBuilder.Append("'" + oRow.ItemArray[y].ToString() + "'");
+                                        oStringBuilder.Append(oRow.ItemArray[y].ToString().AddSingleQuotes());
 
                                         if (y != oRow.ItemArray.Length - 1)
                                         {
                                             oStringBuilder.Append(",");
                                         }
                                     }
+
+                                    oStringBuilder.Append(BR);
+                                    oStringBuilder.Append(BR);
                                 }
-
-                                oStringBuilder.Append(BR);
                             }
-
-                            oStringBuilder.Append(BR);
                         }
-                    }
-
-                    if (HasTVP)
-                    {
-                        oStringBuilder.Append(BR);
                     }
                 }
 
-                oStringBuilder.Append("EXEC " + this.CommandText + " " + BR);
+                oStringBuilder.Append($"EXEC {this.CommandText} {BR}");
 
                 if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
                 {

@@ -6,6 +6,7 @@ using Framework.Core;
 
 using BES;
 using System.Linq;
+using System.Diagnostics;
 
 namespace DAL
 {
@@ -81,7 +82,7 @@ namespace DAL
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
 
-            this.Execute();
+            this.Execute(false);
 
             var output = GetValue<int>("P_ID");
 
@@ -105,6 +106,15 @@ namespace DAL
             In("P_CPF", input.CPF);
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
+
+            #region| PREVIEW |
+
+            if (Debugger.IsAttached)
+            {
+                var statement = this.PreviewSQL();
+            } 
+
+            #endregion
 
             this.Execute();
         }
