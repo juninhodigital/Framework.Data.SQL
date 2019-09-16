@@ -5,6 +5,12 @@ It is a .NET Core/Standard library that provides base class that provides method
 Technologies
 - [x] .NET Core and .NET Standard
 
+Features
+- [x] Preview T-SQL statements (including Table Value Parameters);
+- [x] Log T-SQL statements easily;
+- [x] Fully support to MARS;
+- [x] Multiple Result Set technique;
+
 ### TO DO
 - [X] **Add Unit testing project**
 - [X] **Create Unit tests**
