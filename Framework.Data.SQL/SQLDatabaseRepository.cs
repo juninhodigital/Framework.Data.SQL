@@ -772,6 +772,47 @@ namespace Framework.Data.SQL
             return output;
         }
 
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
+        /// </summary>
+        /// <param name="outputParameterName">Parameter name to returned</param>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <example>
+        /// <code>
+        ///     public void Inserir(UsuarioBES UsuarioI)
+        ///     {
+        ///         this.Run("STORED_PROCEDURE_NAME");
+        /// 
+        ///	        InOut("ID", DbType.Int32);
+        ///         In("Nome",UsuarioI.Nome);
+        ///         In("Mail",UsuarioI.Mail);
+        /// 
+        ///         this.Execute();
+        ///     }
+        /// </code>
+        /// </example>
+        /// <returns>The number of rows affected</returns>
+        public int Execute(string outputParameterName, bool stopExecutionImmediately = true)
+        {
+            var output = 0;
+
+            try
+            {
+                this.Prepare();
+
+                this.Command.ExecuteNonQuery();
+
+                output = this.GetValue<int>(outputParameterName);
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
+
         /// <summary>
         /// Opens a database connection with the property settings specified by the System.Data.SqlClient.SqlConnection.ConnectionString.
         /// </summary>

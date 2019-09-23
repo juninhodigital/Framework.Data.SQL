@@ -82,9 +82,7 @@ namespace DAL
             In("P_Enabled", input.Enabled);
             In("P_TVP_ADDRESS", table);
 
-            this.Execute(false);
-
-            var output = GetValue<int>("P_ID");
+            var output = this.Execute("P_ID", false);
 
             return output;
         }
