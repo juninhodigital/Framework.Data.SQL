@@ -30,8 +30,4 @@
     <PackageReference Include="Framework.Services.Entity" Version="1.0.8" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Framework.Data.SQL.Sample\BES\BES.csproj" />
-  </ItemGroup>
-
 </Project>
