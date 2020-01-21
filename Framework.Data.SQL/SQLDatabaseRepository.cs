@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
+using System.Linq;
+using System.Threading.Tasks;
 using System.IO;
 using System.Reflection;
 using System.Text;
 
 using static Framework.Core.Extensions;
 using Framework.Entity;
-using System.Linq;
 
 namespace Framework.Data.SQL
 {
@@ -115,11 +116,12 @@ namespace Framework.Data.SQL
         {
             parameterName = CheckParameterName(parameterName);
 
-            var oParam = new SqlParameter();
-
-            oParam.Direction = ParameterDirection.Input;
-            oParam.ParameterName = parameterName;
-            oParam.Value = GetParameterValue(parameterValue);
+            var oParam = new SqlParameter
+            {
+                Direction     = ParameterDirection.Input,
+                ParameterName = parameterName,
+                Value         = GetParameterValue(parameterValue)
+             };
 
             AddParam(oParam);
         }
@@ -154,11 +156,12 @@ namespace Framework.Data.SQL
         {
             parameterName = CheckParameterName(parameterName);
 
-            var oParam = new SqlParameter();
-
-            oParam.Direction = ParameterDirection.InputOutput;
-            oParam.ParameterName = parameterName;
-            oParam.Value = GetParameterValue(parameterValue);
+            var oParam = new SqlParameter
+            {
+                Direction     = ParameterDirection.InputOutput,
+                ParameterName = parameterName,
+                Value         = GetParameterValue(parameterValue)
+            };
 
             AddParam(oParam);
         }
@@ -178,12 +181,13 @@ namespace Framework.Data.SQL
         {
             parameterName = CheckParameterName(parameterName);
 
-            var oParam = new SqlParameter();
-
-            oParam.Direction = ParameterDirection.InputOutput;
-            oParam.SqlDbType = sqlDbType;
-            oParam.ParameterName = parameterName;
-            oParam.Value = GetParameterValue(parameterValue);
+            var oParam = new SqlParameter
+            {
+                Direction     = ParameterDirection.InputOutput,
+                SqlDbType     = sqlDbType,
+                ParameterName = parameterName,
+                Value         = GetParameterValue(parameterValue)
+            };
 
             AddParam(oParam);
         }
@@ -194,11 +198,8 @@ namespace Framework.Data.SQL
         /// <param name="dbDataParameter">IDbDataParameter</param>
         public void AddParam(IDbDataParameter dbDataParameter)
         {
-            if (Command == null)
-            {
-                Command = new SqlCommand();
-            }
-
+            Command  = Command ?? new SqlCommand();
+          
             if (Command.Parameters != null && !Command.Parameters.Contains(dbDataParameter.ParameterName))
             {
                 Command.Parameters.Add(dbDataParameter);
@@ -383,6 +384,25 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
+        /// Check whether the Profiler is enabled or not to log the T-SQL Statements in a log file 
+        /// </summary>
+        public async Task IsProfilerEnabledAsync()
+        {
+            if (this.ProfilePath.IsNotNull())
+            {
+                if (!Directory.Exists(Path.GetDirectoryName(this.ProfilePath)))
+                {
+                    Directory.CreateDirectory(Path.GetDirectoryName(this.ProfilePath));
+                }
+
+                var SQL = PreviewSQL();
+                var BREAK = "-".Repeat(100);
+
+                await File.AppendAllTextAsync(this.ProfilePath, SQL + BREAK + Environment.NewLine);
+            }
+        }
+
+        /// <summary>
         /// Returns the T-SQL Statement that will be execute on the Database
         /// </summary>
         /// <returns>T-SQL Statement</returns>
@@ -547,7 +567,6 @@ namespace Framework.Data.SQL
             {
                 this.DatabaseContext = databaseContext;
             }
-
         }
 
         /// <summary>
@@ -559,8 +578,6 @@ namespace Framework.Data.SQL
         {
             this.CommandText = statement;
             this.CommandType = commandType;
-
-            //this.Prepare();
         }
 
         /// <summary>
@@ -581,6 +598,34 @@ namespace Framework.Data.SQL
                 this.Prepare();
 
                 output = (T)Command.ExecuteScalar();
+
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Executes the query, and returns the first column of the first row in the
+        /// result set returned by the query. Additional columns or rows are ignored.
+        /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <returns>
+        /// The first column of the first row in the result set, or a null reference if the result set is empty. 
+        /// Returns a maximum of 2033 characters.
+        /// </returns>
+        public async Task<T> GetScalarAsync<T>(bool stopExecutionImmediately = true)
+        {
+            T output = default(T);
+
+            try
+            {
+                await this.PrepareAsync();
+
+                output = (T)await Command.ExecuteScalarAsync();
 
             }
             finally
@@ -663,6 +708,48 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
+        ///  Adds or refreshes rows in a specified range in the System.Data.DataSet to match those in the data source using the System.Data.DataTable name.
+        /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <returns>System.Data.DataTable</returns>
+        /// <example>
+        /// <code>
+        /// public DataTable FillDataTable()
+        /// {
+        ///     this.Run("STORED_PROCEDURE_NAME");
+        /// 
+        ///     In("ACTION", "SELECT");
+        /// 
+        ///     return GetDataTable();
+        /// }
+        /// </code>
+        /// </example>
+        public async Task<DataTable> GetDataTableAsync(bool stopExecutionImmediately = true)
+        {
+            var output = new DataTable();
+
+            try
+            {
+                await this.PrepareAsync();
+
+                this.Command.Prepare();
+
+                using (var oSqlDataReader = await this.Command.ExecuteReaderAsync(CommandBehavior.CloseConnection))
+                {
+                    output.Load(oSqlDataReader);
+                    
+                    Command.Dispose();
+                }
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
+
+        /// <summary>
         /// Adds or refreshes rows in the System.Data.DataSet.
         /// </summary>
         /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
@@ -703,10 +790,49 @@ namespace Framework.Data.SQL
             return output;
         }
 
-       
+        /// <summary>
+        /// Adds or refreshes rows in the System.Data.DataSet.
+        /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <returns>System.Data.DataSet</returns>
+        /// <example>
+        /// <code>
+        ///  public DataSet FillDataSet()
+        ///  {
+        ///     this.Run("STORED_PROCEDURE_NAME");
+        ///  
+        ///     In("ACTION", "SELECT");
+        ///  
+        ///     return GetDataSet();
+        ///  }
+        /// </code>
+        /// </example>
+        public async Task<DataSet> GetDataSetAsync(bool stopExecutionImmediately = true)
+        {
+            var output = new DataSet();
+
+            try
+            {
+                await this.PrepareAsync();
+
+                var oSqlDataAdapter = new SqlDataAdapter(this.Command);
+
+                oSqlDataAdapter.Fill(output);
+
+                oSqlDataAdapter.Dispose();
+                Command.Dispose();
+
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
 
         /// <summary>
-        ///  Get a IDataReader based on the System.Data.CommandType and the given parameters
+        ///  Get a SqlDataReader based on the System.Data.CommandType and the given parameters
         /// </summary>
         /// <returns>System.Data.SqlClient.SqlDataReader</returns>
         /// <example>
@@ -730,6 +856,35 @@ namespace Framework.Data.SQL
             this.Command.Prepare();
             
             output = this.Command.ExecuteReader(CommandBehavior.CloseConnection);
+
+            return output;
+        }
+
+        /// <summary>
+        ///  Get a SqlDataReader based on the System.Data.CommandType and the given parameters
+        /// </summary>
+        /// <returns>System.Data.SqlClient.SqlDataReader</returns>
+        /// <example>
+        /// <code>
+        ///  public SqlDataReader FillDataReader()
+        ///  {
+        ///     this.Run("STORED_PROCEDURE_NAME");
+        ///  
+        ///     In("ACTION", "SELECT");
+        ///  
+        ///     return GetReader();
+        ///  }
+        /// </code>
+        /// </example>
+        public async Task<SqlDataReader> GetReaderAsync()
+        {
+            SqlDataReader output = null;
+
+            await this.PrepareAsync();
+
+            this.Command.Prepare();
+            
+            output = await this.Command.ExecuteReaderAsync(CommandBehavior.CloseConnection);
 
             return output;
 
@@ -772,6 +927,42 @@ namespace Framework.Data.SQL
             return output;
         }
 
+        /// <summary>
+        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
+        /// </summary>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <example>
+        /// <code>
+        ///     public void Inserir(UsuarioBES UsuarioI)
+        ///     {
+        ///         this.Run("STORED_PROCEDURE_NAME");
+        /// 
+        ///	        InOut("ID", DbType.Int32);
+        ///         In("Nome",UsuarioI.Nome);
+        ///         In("Mail",UsuarioI.Mail);
+        /// 
+        ///         this.Execute();
+        ///     }
+        /// </code>
+        /// </example>
+        /// <returns>The number of rows affected</returns>
+        public async Task<int> ExecuteAsync(bool stopExecutionImmediately = true)
+        {
+            var output = 0;
+
+            try
+            {
+                await this.PrepareAsync();
+
+                output = await this.Command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
 
         /// <summary>
         /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
@@ -802,6 +993,46 @@ namespace Framework.Data.SQL
                 this.Prepare();
 
                 this.Command.ExecuteNonQuery();
+
+                output = this.GetValue<int>(outputParameterName);
+            }
+            finally
+            {
+                this.Release(stopExecutionImmediately);
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Executes a Transact-SQL statement against the connection and returns the number of rows affected 
+        /// </summary>
+        /// <param name="outputParameterName">Parameter name to returned</param>
+        /// <param name="stopExecutionImmediately">If true, the connection will be released immediately after the t-sql statement execution. Otherwise, it will wait for the next one</param>
+        /// <example>
+        /// <code>
+        ///     public void Inserir(UsuarioBES UsuarioI)
+        ///     {
+        ///         this.Run("STORED_PROCEDURE_NAME");
+        /// 
+        ///	        InOut("ID", DbType.Int32);
+        ///         In("Nome",UsuarioI.Nome);
+        ///         In("Mail",UsuarioI.Mail);
+        /// 
+        ///         this.Execute();
+        ///     }
+        /// </code>
+        /// </example>
+        /// <returns>The number of rows affected</returns>
+        public async Task<int> ExecuteAsync(string outputParameterName, bool stopExecutionImmediately = true)
+        {
+            var output = 0;
+
+            try
+            {
+                await this.PrepareAsync();
+
+                await this.Command.ExecuteNonQueryAsync();
 
                 output = this.GetValue<int>(outputParameterName);
             }
@@ -850,6 +1081,46 @@ namespace Framework.Data.SQL
             IsProfilerEnabled();
         }
 
+        /// <summary>
+        /// Opens a database connection with the property settings specified by the System.Data.SqlClient.SqlConnection.ConnectionString.
+        /// </summary>
+        public async Task PrepareAsync()
+        {
+            this.InfoMessage = string.Empty;
+
+            this.Connection = new SqlConnection(DatabaseContext.ConnectionString);
+            this.Connection.InfoMessage += new SqlInfoMessageEventHandler(GetInfoMessage);
+
+            if (this.Command.IsNull())
+            {
+                this.Command = Connection.CreateCommand();
+            }
+
+            this.Command.CommandType = CommandType;
+            this.Command.CommandText = CommandText;
+            this.Command.Connection = Connection;
+
+            if (DatabaseContext.CommandTimeout.HasValue && DatabaseContext.CommandTimeout.Value > 0)
+            {
+                this.Command.CommandTimeout = DatabaseContext.CommandTimeout.Value;
+            }
+
+            if (this.Command.CommandType == CommandType.Text)
+            {
+                this.Command.Parameters.Clear();
+            }
+
+            if (this.Connection != null && this.Connection.State == ConnectionState.Closed)
+            {
+                await this.Connection.OpenAsync();
+            }
+
+            await IsProfilerEnabledAsync();
+        }
+
+        /// <summary>
+        /// Clear all parameter from the existing SQL Command
+        /// </summary>
         public void ResetParameters()
         {
             if (this.Command.IsNotNull())
@@ -935,7 +1206,7 @@ namespace Framework.Data.SQL
         /// <summar
         /// Returns an instance of the Business Entity Structured class whose properties will be filled with the information from the Database
         /// </summary>
-        /// <param name="dataReader">IDataReader</param>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <param name="isUsingNextResult">Indicates if is using multiple resultsets</param>
         /// <returns>An instance of the Business Entity Structured class</returns>
         /// <example>
@@ -977,8 +1248,53 @@ namespace Framework.Data.SQL
 
         }
 
+        /// <summar
+        /// Returns an instance of the Business Entity Structured class whose properties will be filled with the information from the Database
+        /// </summary>
+        /// <param name="dataReader">SqlDataReader</param>
+        /// <param name="isUsingNextResult">Indicates if is using multiple resultsets</param>
+        /// <returns>An instance of the Business Entity Structured class</returns>
+        /// <example>
+        ///     <code>
+        ///     public UsuarioInfo Pesquisar(int ID)
+        ///     {
+        ///         this.Run("SPS_PROCEDURENAME");
+        ///
+        ///         In("PARAMETERNAME_ID", ID);
+        ///
+        ///         return Mapper.Map<![CDATA[<UsuarioInfo>]]>();
+        ///     }
+        ///     </code>
+        /// </example>
+        public async Task<T> MapAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        {
+            if (dataReader.IsNull())
+            {
+                dataReader = await GetReaderAsync();
+            }
+
+            if (dataReader.HasRows())
+            {
+                var items = GetList<T>(dataReader, isUsingNextResult).ToList();
+
+                if (items != null && items.Any())
+                {
+                    return items.FirstOrDefault();
+                }
+                else
+                {
+                    return default(T); //Activator.CreateInstance<T>();
+                }
+            }
+            else
+            {
+                return default(T); //Activator.CreateInstance<T>();
+            }
+
+        }
+
         /// <summary>
-        ///  Get a IDataReader based on the System.Data.CommandType and the given parameters  (using Reflection.Emit)
+        ///  Get a SqlDataReader based on the System.Data.CommandType and the given parameters  (using Reflection.Emit)
         /// </summary>
         /// <returns>System.Data.SqlClient.SqlDataReader</returns>
         /// <example>
@@ -1004,7 +1320,7 @@ namespace Framework.Data.SQL
         /// Returns a generic collection list with instances of the Business Entity Structured class 
         /// whose properties will be filled with the information from the Database  (using Reflection.Emit)
         /// </summary>
-        /// <param name="dataReader">IDataReader</param>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
         /// <returns>Generic Collection List</returns>
         /// <example>
@@ -1019,8 +1335,10 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public IEnumerable<T> GetListOptimized<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public List<T> GetListOptimized<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
+            List<T> output = null;
+
             T Sender = ActivatorFactory.CreateInstance<T>();
 
             if (Sender != null && Sender.MappedProperties.IsNotNull())
@@ -1034,13 +1352,17 @@ namespace Framework.Data.SQL
                 {
                     if (dataReader.HasRows())
                     {
+                        output = new List<T>();
+
                         var schema = dataReader.GetSchema();
 
                         var function = ExpressionLambdaFactory.GetReaderOptimized<T>(Sender, schema);
 
                         while (dataReader.Read())
                         {
-                            yield return function(dataReader);
+                            var item = function(dataReader);
+
+                            output.Add(item);
                         }
 
                         schema = null;
@@ -1059,16 +1381,19 @@ namespace Framework.Data.SQL
                         this.Release();
                     }
 
-                    Sender.Dispose();                  
+                    Sender.Dispose();
                 }
             }
+
+            return output;
+
         }
 
-
+        /// <summary>
         /// Returns a generic collection list with instances of the Business Entity Structured class 
-        /// whose properties will be filled with the information from the Database
+        /// whose properties will be filled with the information from the Database  (using Reflection.Emit)
         /// </summary>
-        /// <param name="oIDataReader">IDataReader</param>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
         /// <returns>Generic Collection List</returns>
         /// <example>
@@ -1083,8 +1408,82 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public IEnumerable<T> GetList<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public async Task<List<T>> GetListOptimizedAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
+            List<T> output = null;
+
+            T Sender = ActivatorFactory.CreateInstance<T>();
+
+            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            {
+                if (dataReader == null)
+                {
+                    dataReader = await GetReaderAsync();
+                }
+
+                try
+                {
+                    if (dataReader.HasRows())
+                    {
+                        output = new List<T>();
+
+                        var schema = dataReader.GetSchema();
+
+                        var function = ExpressionLambdaFactory.GetReaderOptimized<T>(Sender, schema);
+
+                        while (await dataReader.ReadAsync())
+                        {
+                            var item = function(dataReader);
+
+                            output.Add(item);
+                        }
+
+                        schema = null;
+                    }
+                }
+                finally
+                {
+                    if (!isUsingNextResult)
+                    {
+                        if (dataReader != null)
+                        {
+                            dataReader.Close();
+                            dataReader.Dispose();
+                        }
+
+                        this.Release();
+                    }
+
+                    Sender.Dispose();
+                }
+            }
+
+            return output;
+
+        }
+
+        /// Returns a generic collection list with instances of the Business Entity Structured class 
+        /// whose properties will be filled with the information from the Database
+        /// </summary>
+        /// <param name="dataReader">SqlDataReader</param>
+        /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
+        /// <returns>Generic Collection List</returns>
+        /// <example>
+        ///     <code>
+        ///     public List<![CDATA[<UsuarioInfo>]]> Pesquisar()
+        ///     {
+        ///         this.Run("SPS_PROCEDURENAME");
+        ///
+        ///         In("PARAMETERNAME_ID", ID);
+        ///
+        ///         return Mapper.GetList<![CDATA[<UsuarioInfo>]]>();
+        ///     }
+        ///     </code>
+        /// </example>
+        public List<T> GetList<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        {
+            List<T> output = null;
+
             T Sender = Activator.CreateInstance<T>();
 
             if (Sender != null && Sender.MappedProperties.IsNotNull())
@@ -1100,6 +1499,8 @@ namespace Framework.Data.SQL
                 {
                     if (dataReader.HasRows())
                     {
+                        output = new List<T>();
+
                         var schema = dataReader.GetSchema();
                         var oType = typeof(T);
                         var TypeName = oType.Name;
@@ -1111,7 +1512,7 @@ namespace Framework.Data.SQL
 
                             Sender.MappedProperties = null;
 
-                            yield return Sender;
+                            output.Add(Sender);
                         }
 
                         schema = null;
@@ -1136,12 +1537,93 @@ namespace Framework.Data.SQL
                     Sender.Dispose();
                 }
             }
+
+            return output;
+        }
+
+        /// Returns a generic collection list with instances of the Business Entity Structured class 
+        /// whose properties will be filled with the information from the Database
+        /// </summary>
+        /// <param name="dataReader">SqlDataReader</param>
+        /// <param name="IsUsingNextResult">Indicates if is using multiple resultsets</param>
+        /// <returns>Generic Collection List</returns>
+        /// <example>
+        ///     <code>
+        ///     public List<![CDATA[<UsuarioInfo>]]> Pesquisar()
+        ///     {
+        ///         this.Run("SPS_PROCEDURENAME");
+        ///
+        ///         In("PARAMETERNAME_ID", ID);
+        ///
+        ///         return Mapper.GetList<![CDATA[<UsuarioInfo>]]>();
+        ///     }
+        ///     </code>
+        /// </example>
+        public async Task<List<T>> GetListAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        {
+            List<T> output = null;
+
+            T Sender = Activator.CreateInstance<T>();
+
+            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            {
+                Sender.Dispose();
+
+                if (dataReader == null)
+                {
+                    dataReader = await GetReaderAsync();
+                }
+
+                try
+                {
+                    if (dataReader.HasRows())
+                    {
+                        output = new List<T>();
+
+                        var schema = dataReader.GetSchema();
+                        var oType = typeof(T);
+                        var TypeName = oType.Name;
+
+                        while (await dataReader.ReadAsync())
+                        {
+                            Sender = Activator.CreateInstance<T>();
+                            BindList(dataReader, Sender, oType, TypeName, schema, this.MustThrowMappingExceptions);
+
+                            Sender.MappedProperties = null;
+
+                            output.Add(Sender);
+                        }
+
+                        schema = null;
+                        oType = null;
+                    }
+                }
+                finally
+                {
+                    if (!isUsingNextResult)
+                    {
+                        if (dataReader != null)
+                        {
+                            dataReader.Close();
+                            dataReader.Dispose();
+
+                            dataReader = null;
+                        }
+
+                        this.Release();
+                    }
+
+                    Sender.Dispose();
+                }
+            }
+
+            return output;
         }
 
         /// <summary>
         /// Retuns a generic list whose datatype will be filled with the information from the Database        
         /// </summary>
-        /// <param name="oIDataReader">IDataReader</param>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <example>
         ///     <code>
         ///     public List<![CDATA[<UsuarioInfo>]]> Pesquisar()
@@ -1154,34 +1636,34 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetPrimitiveList<T>(IDataReader oIDataReader = null) where T : IComparable, new()
+        public List<T> GetPrimitiveList<T>(SqlDataReader dataReader = null) where T : IComparable, new()
         {
             List<T> output = null;
 
-            if (oIDataReader == null)
+            if (dataReader == null)
             {
-                oIDataReader = GetReader();
+                dataReader = GetReader();
             }
 
             try
             {
-                if (oIDataReader.IsNotNull() && oIDataReader.IsClosed == false && ((SqlDataReader)oIDataReader).HasRows)
+                if (dataReader.IsNotNull() && dataReader.IsClosed == false && dataReader.HasRows)
                 {
                     output = new List<T>();
 
-                    while (oIDataReader.Read())
+                    while (dataReader.Read())
                     {
                         T PropertyValue = ActivatorFactory.CreateInstance<T>();
 
-                        if (oIDataReader[0] != null || oIDataReader[0] == DBNull.Value)
+                        if (dataReader[0] != null || dataReader[0] == DBNull.Value)
                         {
-                            if (oIDataReader[0] == DBNull.Value)
+                            if (dataReader[0] == DBNull.Value)
                             {
                                 PropertyValue = default(T);
                             }
                             else
                             {
-                                PropertyValue = (T)Convert.ChangeType(oIDataReader[0], typeof(T));
+                                PropertyValue = (T)Convert.ChangeType(dataReader[0], typeof(T));
                             }
                         }
                         else
@@ -1211,17 +1693,17 @@ namespace Framework.Data.SQL
                     output.Clear();
                 }
 
-                oIDataReader.Close();
-                oIDataReader.Dispose();
+                dataReader.Close();
+                dataReader.Dispose();
 
                 throw;
             }
             finally
             {
-                if (oIDataReader != null)
+                if (dataReader != null)
                 {
-                    oIDataReader.Close();
-                    oIDataReader.Dispose();
+                    dataReader.Close();
+                    dataReader.Dispose();
                 }
 
                 this.Release();
@@ -1231,15 +1713,107 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
-        /// Fill the property value of the Business Entity Structured Class with the information in the IDataReader
+        /// Retuns a generic list whose datatype will be filled with the information from the Database        
         /// </summary>
-        /// <param name="dataReader">IDataReader</param>
+        /// <param name="dataReader">SqlDataReader</param>
+        /// <example>
+        ///     <code>
+        ///     public List<![CDATA[<UsuarioInfo>]]> Pesquisar()
+        ///     {
+        ///         this.Run("SPS_PROCEDURENAME");
+        ///
+        ///         In("PARAMETERNAME_ID", ID);
+        ///
+        ///         return Mapper.GetList<![CDATA[<int>]]>();
+        ///     }
+        ///     </code>
+        /// </example>
+        public async Task<List<T>> GetPrimitiveListAsync<T>(SqlDataReader dataReader = null) where T : IComparable, new()
+        {
+            List<T> output = null;
+
+            if (dataReader == null)
+            {
+                dataReader = await GetReaderAsync();
+            }
+
+            try
+            {
+                if (dataReader.IsNotNull() && dataReader.IsClosed == false && dataReader.HasRows)
+                {
+                    output = new List<T>();
+
+                    while (await dataReader.ReadAsync())
+                    {
+                        T PropertyValue = ActivatorFactory.CreateInstance<T>();
+
+                        if (dataReader[0] != null || dataReader[0] == DBNull.Value)
+                        {
+                            if (dataReader[0] == DBNull.Value)
+                            {
+                                PropertyValue = default(T);
+                            }
+                            else
+                            {
+                                PropertyValue = (T)Convert.ChangeType(dataReader[0], typeof(T));
+                            }
+                        }
+                        else
+                        {
+                            PropertyValue = default(T);
+                        }
+
+                        if (PropertyValue.IsNotNull())
+                        {
+                            output.Add(PropertyValue);
+                        }
+                    }
+                }
+                else
+                {
+                    output = new List<T>();
+                }
+            }
+            catch (Exception)
+            {
+                if (output.IsNull())
+                {
+                    output = new List<T>();
+                }
+                else
+                {
+                    output.Clear();
+                }
+
+                dataReader.Close();
+                dataReader.Dispose();
+
+                throw;
+            }
+            finally
+            {
+                if (dataReader != null)
+                {
+                    dataReader.Close();
+                    dataReader.Dispose();
+                }
+
+                this.Release();
+            }
+
+            return output;
+        }
+
+        /// <summary>
+        /// Fill the property value of the Business Entity Structured Class with the information in the SqlDataReader
+        /// </summary>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <param name="Sender">Class derived from the Framework.Entity.BussinessEntityStructure class</param>
         /// <param name="type">Type of Sender</param>
         /// <param name="typeName">Gets the name of the current member.</param>
         /// <param name="schema">List of the columns avaiable in the SqlDataReader</param>
         /// <param name="mustRaiseException">Indicates whether an exception will be throw in case of failure</param>
-        public void BindList<T>(IDataReader dataReader, T Sender, Type type, string typeName, HashSet<string> schema, bool mustRaiseException) where T : BusinessEntityStructure
+        public void BindList<T>(SqlDataReader dataReader, T Sender, Type type, string typeName, HashSet<string> schema, bool mustRaiseException) where T : BusinessEntityStructure
         {
             //mappedProperty.Key   PropertyName;
             //mappedProperty.Value ColumnName;
@@ -1309,11 +1883,11 @@ namespace Framework.Data.SQL
         }
 
         /// <summary>
-        /// Returns a System.Data.DataTable that describes the column metadata of the IDataReader
+        /// Returns a System.Data.DataTable that describes the column metadata of the SqlDataReader
         /// </summary>
         /// <param name="dataReader"></param>
         /// <returns></returns>
-        public HashSet<string> GetSchema(IDataReader dataReader)
+        public HashSet<string> GetSchema(SqlDataReader dataReader)
         {
             return dataReader.GetSchema();
         }

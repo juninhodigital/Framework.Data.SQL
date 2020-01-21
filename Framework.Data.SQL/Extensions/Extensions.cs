@@ -50,11 +50,11 @@ namespace Framework.Data.SQL
 
 
         /// <summary>
-        /// Returns a System.Data.DataTable that describes the column metadata of the IDataReader
+        /// Returns a System.Data.DataTable that describes the column metadata of the SqlDataReader
         /// </summary>
-        /// <param name="dataReader"></param>
+        /// <param name="dataReader">SqlDataReader</param>
         /// <returns></returns>
-        public static HashSet<string> GetSchema(this IDataReader dataReader)
+        public static HashSet<string> GetSchema(this SqlDataReader dataReader)
         {
             var oList = new HashSet<string>();
 

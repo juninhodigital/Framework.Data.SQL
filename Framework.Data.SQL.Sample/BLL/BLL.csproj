@@ -6,9 +6,14 @@
     <RootNamespace>BLL</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+  </PropertyGroup>
+
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="8.4.0" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.16" />
+    <PackageReference Include="FluentValidation" Version="8.6.1" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.17" />
   </ItemGroup>
 
   <ItemGroup>
