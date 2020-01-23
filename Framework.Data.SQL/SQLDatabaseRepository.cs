@@ -147,13 +147,14 @@ namespace Framework.Data.SQL
         /// </summary>
         /// <param name="parameterName">Parameter Name</param>
         /// <param name="parameterValue">Parameter Value</param>
+        /// <param name="sqlDbType">SqlDbType</param>
         /// <param name="size">Size</param>
         /// <example>
         /// <code>
         ///     InOut("ParameterName", "ParameterValue");
         /// </code>
         /// </example>
-        public void InOut(string parameterName, object parameterValue, int size=0)
+        public void InOut(string parameterName, object parameterValue, SqlDbType sqlDbType, int size)
         {
             parameterName = CheckParameterName(parameterName);
 
@@ -161,14 +162,11 @@ namespace Framework.Data.SQL
             {
                 Direction     = ParameterDirection.InputOutput,
                 ParameterName = parameterName,
-                Value         = GetParameterValue(parameterValue)
+                Value         = GetParameterValue(parameterValue),
+                SqlDbType     = sqlDbType,
+                Size          = size
             };
-
-            if(size>0)
-            {
-                oParam.Size = size;
-            }
-
+                        
             AddParam(oParam);
         }
 
