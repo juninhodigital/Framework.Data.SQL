@@ -160,10 +160,10 @@ namespace Framework.Data.SQL
 
             var oParam = new SqlParameter
             {
-                Direction     = ParameterDirection.InputOutput,
                 ParameterName = parameterName,
+                DbType        = DbType.Int32,
                 Value         = GetParameterValue(parameterValue),
-                SqlDbType     = sqlDbType,
+                Direction     = ParameterDirection.InputOutput
                 Size          = size
             };
                         
@@ -237,7 +237,7 @@ namespace Framework.Data.SQL
         /// <returns>object</returns>
         public object GetParameterValue(object parameterValue)
         {
-            if (parameterValue.IsNull())
+            if (parameterValue.IsNull() || parameterValue==DBNull.Value)
             {
                 return DBNull.Value;
             }
@@ -474,13 +474,13 @@ namespace Framework.Data.SQL
                         {
                             if (oParam.Direction == ParameterDirection.InputOutput)
                             {
-                                if (oParam.Value.IsNotNull())
+                                if (oParam.Value.IsNotNull() && oParam.Value!= DBNull.Value)
                                 {
                                     oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString() + " OUTPUT");
                                 }
                                 else
                                 {
-                                    oStringBuilder.Append(oParam.ParameterName + " = NULL OUTPUT");
+                                    oStringBuilder.Append(oParam.ParameterName + " = " + oParam.ParameterName + " OUTPUT");
                                 }
                             }
                             else
@@ -490,7 +490,7 @@ namespace Framework.Data.SQL
                         }
                         else
                         {
-                            if (oParam.Value.IsNull())
+                            if (oParam.Value.IsNull() || oParam.Value == DBNull.Value)
                             {
                                 oStringBuilder.Append(oParam.ParameterName + " = NULL");
                             }
