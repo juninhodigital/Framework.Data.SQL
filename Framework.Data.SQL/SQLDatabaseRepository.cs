@@ -163,7 +163,7 @@ namespace Framework.Data.SQL
                 ParameterName = parameterName,
                 DbType        = DbType.Int32,
                 Value         = GetParameterValue(parameterValue),
-                Direction     = ParameterDirection.InputOutput
+                Direction     = ParameterDirection.InputOutput,
                 Size          = size
             };
                         
