@@ -161,7 +161,7 @@ namespace Framework.Data.SQL
             var oParam = new SqlParameter
             {
                 ParameterName = parameterName,
-                DbType        = DbType.Int32,
+                SqlDbType     = sqlDbType,
                 Value         = GetParameterValue(parameterValue),
                 Direction     = ParameterDirection.InputOutput,
                 Size          = size
