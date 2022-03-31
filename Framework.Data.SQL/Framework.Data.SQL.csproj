@@ -26,8 +26,14 @@
 
   <ItemGroup>
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.6" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.19" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.8" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Framework.Data">
+      <HintPath>..\..\Framework.Data\Framework.Data\bin\Debug\netstandard2.0\Framework.Data.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

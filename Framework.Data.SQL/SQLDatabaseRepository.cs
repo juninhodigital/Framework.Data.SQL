@@ -93,7 +93,17 @@ namespace Framework.Data.SQL
         /// </summary>
         ~SQLDatabaseRepository()
         {
-            this.Dispose();
+
+            /*
+            
+            CAUTION: Do not call Close or Dispose on a Connection, a DataReader, or any other managed object in the Finalize method of your class. 
+            In a finalizer, you should only release unmanaged resources that your class owns directly.
+            If your class does not own any unmanaged resources, do not include a Finalize method in your class definition. 
+            
+            */
+
+            // Commented the line below based on the MSDN article http://msdn2.microsoft.com/en-us/library/system.data.sqlclient.sqldatareader.close.aspx
+            //this.Dispose();
         }
 
         #endregion
