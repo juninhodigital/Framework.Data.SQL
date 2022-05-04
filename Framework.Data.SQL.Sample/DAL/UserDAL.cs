@@ -74,7 +74,7 @@ namespace DAL
 
             var table = GetTable(input.Addresses, 0);
 
-            this.InOut("P_ID", DbType.Int32);
+            this.InOut("P_ID", 0, SqlDbType.Int, 4);
             In("P_Name", input.Name);
             In("P_Nickname", input.Nickname);
             In("P_RG", input.RG);
