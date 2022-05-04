@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2041
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32421.90
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Framework.Data.SQL", "Framework.Data.SQL\Framework.Data.SQL.csproj", "{61BE87AD-F9F8-4AC3-A176-17965B539791}"
 EndProject
@@ -52,6 +52,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "User", "User", "{75AC5168-5
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation", "Framework.Data.SQL.Sample\Validation\Validation.csproj", "{E2A20DEB-AD54-49E2-A335-7E9EB85A0AA4}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github Actions", "Github Actions", "{F003B447-CC54-4F17-84F6-5D09C013BB66}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{19181696-DB9E-410C-A648-E3B4845D937F}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\nuget.yml = .github\workflows\nuget.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,6 +105,7 @@ Global
 		{04EA08E5-4109-4751-886C-30ED2E7A2493} = {469BE5F1-9BA2-431B-90C4-ADA7729D94C2}
 		{75AC5168-5A6D-4EDC-9B3B-D8896C206E0C} = {469BE5F1-9BA2-431B-90C4-ADA7729D94C2}
 		{E2A20DEB-AD54-49E2-A335-7E9EB85A0AA4} = {8AFCA37C-FA11-434D-9DAB-D79A4717E453}
+		{19181696-DB9E-410C-A648-E3B4845D937F} = {F003B447-CC54-4F17-84F6-5D09C013BB66}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D4D8ABEA-7197-4F3B-BCD4-B24699ACD11D}
