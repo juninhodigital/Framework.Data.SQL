@@ -34,7 +34,7 @@
     <PackageReference Include="Framework.Services.Cryptography" Version="1.0.9" />
     <PackageReference Include="Framework.Services.Data" Version="1.0.21" />
     <PackageReference Include="Framework.Services.Entity" Version="1.0.12" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
   </ItemGroup>
 
   <ItemGroup>
