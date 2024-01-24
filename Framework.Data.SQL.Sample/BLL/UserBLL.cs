@@ -29,9 +29,14 @@ namespace BLL
         /// Get all Users
         /// </summary>
         /// <returns>list of UserBES</returns>
-        public IEnumerable<UserBES> Get()
+        public IEnumerable<UserBES>? Get()
         {
-            return DAL.Get();
+            if (DAL != null)
+            {
+                return DAL.Get();
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -39,9 +44,14 @@ namespace BLL
         /// </summary>
         /// <param name="ID">identification</param>
         /// <returns>UserBES</returns>
-        public UserBES GetByID(int ID)
+        public UserBES? GetByID(int ID)
         {
-            return DAL.GetByID(ID);
+            if (DAL != null)
+            {
+                return DAL.GetByID(ID);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -49,11 +59,16 @@ namespace BLL
         /// </summary>
         /// <param name="input">UserBES</param>
         /// <returns>identification</returns>
-        public int Save(UserBES input)
+        public int? Save(UserBES input)
         {
             Validate(input);
 
-            return DAL.Save(input);
+            if (DAL != null)
+            {
+                return DAL.Save(input);
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -64,7 +79,10 @@ namespace BLL
         {
             Validate(input, true);
 
-            DAL.Update(input);
+            if (DAL != null)
+            {
+                DAL.Update(input);
+            }
         }
 
         /// <summary>
@@ -73,7 +91,10 @@ namespace BLL
         /// <param name="input">UserBES</param>
         public void Delete(UserBES input)
         {
-            DAL.Delete(input);
+            if (DAL != null)
+            {
+                DAL.Delete(input);
+            }
         }
 
         #endregion

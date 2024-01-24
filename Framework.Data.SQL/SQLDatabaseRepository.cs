@@ -191,19 +191,22 @@ namespace Framework.Data.SQL
         ///     Out("ParameterName", DbType.Int32);
         /// </code>
         /// </example>
-        public void Out(string parameterName, SqlDbType sqlDbType, object parameterValue = null)
+        public void Out(string parameterName, SqlDbType sqlDbType, object? parameterValue = null)
         {
-            parameterName = CheckParameterName(parameterName);
-
-            var oParam = new SqlParameter
+            if (parameterValue != null)
             {
-                Direction     = ParameterDirection.InputOutput,
-                SqlDbType     = sqlDbType,
-                ParameterName = parameterName,
-                Value         = GetParameterValue(parameterValue)
-            };
+                parameterName = CheckParameterName(parameterName);
 
-            AddParam(oParam);
+                var oParam = new SqlParameter
+                {
+                    Direction = ParameterDirection.InputOutput,
+                    SqlDbType = sqlDbType,
+                    ParameterName = parameterName,
+                    Value = GetParameterValue(parameterValue)
+                };
+
+                AddParam(oParam);
+            }
         }
 
         /// <summary>
@@ -247,7 +250,7 @@ namespace Framework.Data.SQL
         /// <returns>object</returns>
         public object GetParameterValue(object parameterValue)
         {
-            if (parameterValue.IsNull() || parameterValue==DBNull.Value)
+            if (parameterValue==null || parameterValue==DBNull.Value)
             {
                 return DBNull.Value;
             }
@@ -267,7 +270,7 @@ namespace Framework.Data.SQL
 
                 if (parameterValue is DateTime)
                 {
-                    if (DateTime.Parse(parameterValue.ToString()) == DateTime.MinValue)
+                    if (DateTime.Parse(parameterValue.ToString()??string.Empty) == DateTime.MinValue)
                     {
                         return DBNull.Value;
                     }
@@ -348,7 +351,7 @@ namespace Framework.Data.SQL
                 {
                     var oDataTable = parameterValue as DataTable;
 
-                    if (oDataTable.IsNull())
+                    if (oDataTable==null)
                     {
                         return DBNull.Value;
                     }
@@ -383,7 +386,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public void IsProfilerEnabled()
         {
-            if (this.ProfilePath.IsNotNull())
+            if (this.ProfilePath!=null)
             {
                 if (!Directory.Exists(Path.GetDirectoryName(this.ProfilePath)))
                 {
@@ -402,7 +405,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public async Task IsProfilerEnabledAsync()
         {
-            if (this.ProfilePath.IsNotNull())
+            if (this.ProfilePath!=null)
             {
                 if (!Directory.Exists(Path.GetDirectoryName(this.ProfilePath)))
                 {
@@ -428,7 +431,7 @@ namespace Framework.Data.SQL
             if (this.CommandType == CommandType.StoredProcedure)
             {
                 // Check if exists table value parameters
-                if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
+                if (Command!=null && Command.Parameters != null && Command.Parameters.Count > 0)
                 {
                     for (int i = 0; i < Command.Parameters.Count; i++)
                     {
@@ -438,7 +441,7 @@ namespace Framework.Data.SQL
                         {
                             var DT = oParam.Value as DataTable;
 
-                            if (DT.IsNotNull() && DT.Rows.Count > 0)
+                            if (DT!=null && DT.Rows.Count > 0)
                             {
                                 oStringBuilder.Append($"DECLARE {oParam.ParameterName} {oParam.ParameterName.Replace("@P_", "").Replace("@", "")} {BR}{BR}");
 
@@ -474,7 +477,7 @@ namespace Framework.Data.SQL
 
                 oStringBuilder.Append($"EXEC {this.CommandText} {BR}");
 
-                if (Command.IsNotNull() && Command.Parameters != null && Command.Parameters.Count > 0)
+                if (Command!=null && Command.Parameters != null && Command.Parameters.Count > 0)
                 {
                     for (int i = 0; i < Command.Parameters.Count; i++)
                     {
@@ -484,7 +487,7 @@ namespace Framework.Data.SQL
                         {
                             if (oParam.Direction == ParameterDirection.InputOutput)
                             {
-                                if (oParam.Value.IsNotNull() && oParam.Value!= DBNull.Value)
+                                if (oParam.Value!=null && oParam.Value!= DBNull.Value)
                                 {
                                     oStringBuilder.Append(oParam.ParameterName + " = " + oParam.Value.ToString() + " OUTPUT");
                                 }
@@ -500,7 +503,7 @@ namespace Framework.Data.SQL
                         }
                         else
                         {
-                            if (oParam.Value.IsNull() || oParam.Value == DBNull.Value)
+                            if (oParam.Value==null || oParam.Value == DBNull.Value)
                             {
                                 oStringBuilder.Append(oParam.ParameterName + " = NULL");
                             }
@@ -573,7 +576,7 @@ namespace Framework.Data.SQL
         /// <param name="databaseContext">DataBaseManager</param>
         public void SetContext(IDatabaseContext databaseContext)
         {
-            if (databaseContext.IsNull())
+            if (databaseContext==null)
             {
                 throw new ArgumentException("Framework - The database context is null or empty");
             }
@@ -1068,7 +1071,7 @@ namespace Framework.Data.SQL
             this.Connection = new SqlConnection(DatabaseContext.ConnectionString);
             this.Connection.InfoMessage += new SqlInfoMessageEventHandler(GetInfoMessage);
 
-            if (this.Command.IsNull())
+            if (this.Command==null)
             {
                 this.Command = Connection.CreateCommand();
             }
@@ -1105,7 +1108,7 @@ namespace Framework.Data.SQL
             this.Connection = new SqlConnection(DatabaseContext.ConnectionString);
             this.Connection.InfoMessage += new SqlInfoMessageEventHandler(GetInfoMessage);
 
-            if (this.Command.IsNull())
+            if (this.Command==null)
             {
                 this.Command = Connection.CreateCommand();
             }
@@ -1137,7 +1140,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public void ResetParameters()
         {
-            if (this.Command.IsNotNull())
+            if (this.Command!=null)
             {
                 this.Command.Parameters.Clear();
             }
@@ -1148,7 +1151,7 @@ namespace Framework.Data.SQL
         /// </summary>
         public void ClearParameters()
         {
-            if(this.Command.IsNotNull())
+            if(this.Command!=null)
             {
                 this.Command.Parameters.Clear();
             }
@@ -1202,7 +1205,7 @@ namespace Framework.Data.SQL
         /// <param name="e"></param>
         public void GetInfoMessage(object sender, SqlInfoMessageEventArgs e)
         {
-            if (e.Errors.IsNotNull())
+            if (e.Errors!=null)
             {
                 foreach (SqlError oError in e.Errors)
                 {
@@ -1235,9 +1238,9 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public T Map<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public T Map<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            if (dataReader.IsNull())
+            if (dataReader==null)
             {
                 dataReader = GetReader();
             }
@@ -1246,18 +1249,25 @@ namespace Framework.Data.SQL
             {
                 var items = GetList<T>(dataReader, isUsingNextResult).ToList();
 
-                if (items != null && items.Any())
+                if (items != null && items.Count > 0)
                 {
-                    return items.FirstOrDefault();
+                    var output = items.FirstOrDefault();
+
+                    if(output != null)
+                    {
+                        return output;
+                    }
+
+                    return new();
                 }
                 else
                 {
-                    return default(T); //Activator.CreateInstance<T>();
+                    return new(); //Activator.CreateInstance<T>();
                 }
             }
             else
             {
-                return default(T); //Activator.CreateInstance<T>();
+                return new(); //Activator.CreateInstance<T>();
             }
 
         }
@@ -1280,9 +1290,9 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public async Task<T> MapAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public async Task<T> MapAsync<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            if (dataReader.IsNull())
+            if (dataReader==null)
             {
                 dataReader = await GetReaderAsync();
             }
@@ -1293,16 +1303,23 @@ namespace Framework.Data.SQL
 
                 if (items != null && items.Any())
                 {
-                    return items.FirstOrDefault();
+                    var output = items.FirstOrDefault();
+
+                    if (output != null)
+                    {
+                        return output;
+                    }
+
+                    return new();
                 }
                 else
                 {
-                    return default(T); //Activator.CreateInstance<T>();
+                    return new(); //Activator.CreateInstance<T>();
                 }
             }
             else
             {
-                return default(T); //Activator.CreateInstance<T>();
+                return new(); //Activator.CreateInstance<T>();
             }
 
         }
@@ -1349,13 +1366,13 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetListOptimized<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public List<T> GetListOptimized<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             T Sender = ActivatorFactory.CreateInstance<T>();
 
-            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            if (Sender != null && Sender.MappedProperties!=null)
             {
                 if (dataReader == null)
                 {
@@ -1399,7 +1416,7 @@ namespace Framework.Data.SQL
                 }
             }
 
-            return output;
+            return output??new();
 
         }
 
@@ -1422,13 +1439,13 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public async Task<List<T>> GetListOptimizedAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public async Task<List<T>> GetListOptimizedAsync<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             T Sender = ActivatorFactory.CreateInstance<T>();
 
-            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            if (Sender != null && Sender.MappedProperties!=null)
             {
                 if (dataReader == null)
                 {
@@ -1472,7 +1489,7 @@ namespace Framework.Data.SQL
                 }
             }
 
-            return output;
+            return output??new();
 
         }
 
@@ -1494,13 +1511,13 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetList<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public List<T> GetList<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             T Sender = Activator.CreateInstance<T>();
 
-            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            if (Sender != null && Sender.MappedProperties!=null)
             {
                 Sender.Dispose();
 
@@ -1552,7 +1569,7 @@ namespace Framework.Data.SQL
                 }
             }
 
-            return output;
+            return output??new();
         }
 
         /// Returns a generic collection list with instances of the Business Entity Structured class 
@@ -1573,13 +1590,13 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public async Task<List<T>> GetListAsync<T>(SqlDataReader dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
+        public async Task<List<T>> GetListAsync<T>(SqlDataReader? dataReader = null, bool isUsingNextResult = false) where T : BusinessEntityStructure, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             T Sender = Activator.CreateInstance<T>();
 
-            if (Sender != null && Sender.MappedProperties.IsNotNull())
+            if (Sender != null && Sender.MappedProperties!=null)
             {
                 Sender.Dispose();
 
@@ -1631,7 +1648,7 @@ namespace Framework.Data.SQL
                 }
             }
 
-            return output;
+            return output??new();
         }
 
         /// <summary>
@@ -1650,9 +1667,9 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public List<T> GetPrimitiveList<T>(SqlDataReader dataReader = null) where T : IComparable, new()
+        public List<T> GetPrimitiveList<T>(SqlDataReader? dataReader = null) where T : IComparable, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             if (dataReader == null)
             {
@@ -1661,7 +1678,7 @@ namespace Framework.Data.SQL
 
             try
             {
-                if (dataReader.IsNotNull() && dataReader.IsClosed == false && dataReader.HasRows)
+                if (dataReader!=null && dataReader.IsClosed == false && dataReader.HasRows)
                 {
                     output = new List<T>();
 
@@ -1673,7 +1690,7 @@ namespace Framework.Data.SQL
                         {
                             if (dataReader[0] == DBNull.Value)
                             {
-                                PropertyValue = default(T);
+                                PropertyValue = new();
                             }
                             else
                             {
@@ -1682,10 +1699,10 @@ namespace Framework.Data.SQL
                         }
                         else
                         {
-                            PropertyValue = default(T);
+                            PropertyValue = new();
                         }
 
-                        if (PropertyValue.IsNotNull())
+                        if (PropertyValue!=null)
                         {
                             output.Add(PropertyValue);
                         }
@@ -1698,7 +1715,7 @@ namespace Framework.Data.SQL
             }
             catch (Exception)
             {
-                if (output.IsNull())
+                if (output==null)
                 {
                     output = new List<T>();
                 }
@@ -1742,9 +1759,9 @@ namespace Framework.Data.SQL
         ///     }
         ///     </code>
         /// </example>
-        public async Task<List<T>> GetPrimitiveListAsync<T>(SqlDataReader dataReader = null) where T : IComparable, new()
+        public async Task<List<T>> GetPrimitiveListAsync<T>(SqlDataReader? dataReader = null) where T : IComparable, new()
         {
-            List<T> output = null;
+            List<T>? output = null;
 
             if (dataReader == null)
             {
@@ -1753,7 +1770,7 @@ namespace Framework.Data.SQL
 
             try
             {
-                if (dataReader.IsNotNull() && dataReader.IsClosed == false && dataReader.HasRows)
+                if (dataReader!=null && dataReader.IsClosed == false && dataReader.HasRows)
                 {
                     output = new List<T>();
 
@@ -1765,7 +1782,7 @@ namespace Framework.Data.SQL
                         {
                             if (dataReader[0] == DBNull.Value)
                             {
-                                PropertyValue = default(T);
+                                PropertyValue = new();
                             }
                             else
                             {
@@ -1774,10 +1791,10 @@ namespace Framework.Data.SQL
                         }
                         else
                         {
-                            PropertyValue = default(T);
+                            PropertyValue = new();
                         }
 
-                        if (PropertyValue.IsNotNull())
+                        if (PropertyValue!=null)
                         {
                             output.Add(PropertyValue);
                         }
@@ -1790,7 +1807,7 @@ namespace Framework.Data.SQL
             }
             catch (Exception)
             {
-                if (output.IsNull())
+                if (output==null)
                 {
                     output = new List<T>();
                 }
@@ -1829,44 +1846,44 @@ namespace Framework.Data.SQL
         /// <param name="mustRaiseException">Indicates whether an exception will be throw in case of failure</param>
         public void BindList<T>(SqlDataReader dataReader, T Sender, Type type, string typeName, HashSet<string> schema, bool mustRaiseException) where T : BusinessEntityStructure
         {
-            //mappedProperty.Key   PropertyName;
-            //mappedProperty.Value ColumnName;
-
-            foreach (var mappedProperty in Sender.MappedProperties)
+            if (Sender != null && Sender.MappedProperties!=null)
             {
-                if (schema.IsNotNull() && schema.Contains(mappedProperty.Key))
-                {                 
-                    if (dataReader[mappedProperty.Value] != null)
+                foreach (var mappedProperty in Sender.MappedProperties)
+                {
+                    if (schema!=null && schema.Contains(mappedProperty.Key))
                     {
-                        object PropertyValue = null;
-
-                        if (dataReader[mappedProperty.Value] == DBNull.Value)
+                        if (dataReader[mappedProperty.Value] != null)
                         {
-                            PropertyValue = null;
+                            object? PropertyValue = null;
+
+                            if (dataReader[mappedProperty.Value] == DBNull.Value)
+                            {
+                                PropertyValue = null;
+                            }
+                            else
+                            {
+                                //PropertyValue = Convert.ChangeType((oIDataReader[mappedProperty.Value]), oPropertyInfo.PropertyType);
+                                PropertyValue = dataReader[mappedProperty.Value];
+                            }
+
+                            if (PropertyValue!=null)
+                            {
+                                type.InvokeMember(mappedProperty.Key, bindingFlags, Type.DefaultBinder, Sender, new object[] { PropertyValue });
+                            }
                         }
                         else
                         {
-                            //PropertyValue = Convert.ChangeType((oIDataReader[mappedProperty.Value]), oPropertyInfo.PropertyType);
-                            PropertyValue = dataReader[mappedProperty.Value];
+                            if (mustRaiseException)
+                            {
+                                throw new ArgumentException($"NullReferenceException - A propriedade '{mappedProperty.Key}' da classe '{typeName}' está mapeada para o campo '{mappedProperty.Value}' que nao existe IDataReader.");
+                            }
                         }
 
-                        if (PropertyValue.IsNotNull())
-                        {
-                            type.InvokeMember(mappedProperty.Key, bindingFlags, Type.DefaultBinder, Sender, new object[] { PropertyValue });
-                        }
                     }
                     else
                     {
-                        if (mustRaiseException)
-                        {
-                            throw new ArgumentException($"NullReferenceException - A propriedade '{mappedProperty.Key}' da classe '{typeName}' está mapeada para o campo '{mappedProperty.Value}' que nao existe IDataReader.");
-                        }
+                        // Do nothing
                     }
-
-                }
-                else
-                {
-                    // Do nothing
                 }
             }
         }

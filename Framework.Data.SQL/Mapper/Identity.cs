@@ -16,7 +16,19 @@ namespace Framework.Data.SQL
             /// Whether this <see cref="Identity"/> equals another.
             /// </summary>
             /// <param name="obj">The other <see cref="object"/> to compare to.</param>
-            public override bool Equals(object obj) => Equals(obj as Identity);
+            public override bool Equals(object? obj)
+            {
+                if (obj != null)
+                {
+                    if (Equals((Identity)obj))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+            
 
             /// <summary>
             /// The raw SQL command.

@@ -17,11 +17,10 @@ Features
 - [X] **Setup your database using the file '$\Database\Scripts\Initial Payload.sql'**
 - [X] **Check out the unit tests and debug/run the sample codes**
 
-## Download
-
-Full Version  | NuGet		       | Package Manager
-:------------ | :-------------|:----------------
-Framework.Data.SQL         | <a href="https://www.nuget.org/packages/Framework.Services.Data.SQL/"><img src="https://github.com/juninhodigital/Framework.Core/blob/master/nuget.svg"/></a> | PM > Install-Package Framework.Data.SQL
+### Contact Me
+| E-mail                   | Linkedin									 |
+| ------------------------ | ------------------------------------------- |
+| `juninho_web@hotmail.com`| `https://www.linkedin.com/in/juninhodigital`|
 
 ## Contribute
 The best way to contribute is by **putting in some good words** about the library and help me out by:

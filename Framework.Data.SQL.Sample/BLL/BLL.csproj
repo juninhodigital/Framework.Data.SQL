@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
@@ -12,8 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="FluentValidation" Version="11.0.0" />
-    <PackageReference Include="Framework.Services.Data" Version="1.0.21" />
+    <PackageReference Include="FluentValidation" Version="11.9.0" />
+    <PackageReference Include="Framework.Services.Data" Version="1.0.24" />
   </ItemGroup>
 
   <ItemGroup>

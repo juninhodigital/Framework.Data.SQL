@@ -75,7 +75,7 @@ namespace Framework.Data.SQL.Tests
                      
             using (var BLL = new UserBLL(container))
             {
-                payload.ID  = BLL.Save(payload);
+                payload.ID  = BLL.Save(payload).Value;
             }
 
             Assert.True(payload.ID > 0);
